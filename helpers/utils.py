@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 
+
 def dataframe_from_file(file):
     pd.set_option('colheader_justify', 'center')
     name, ext = os.path.splitext(file.name)
@@ -11,7 +12,7 @@ def dataframe_from_file(file):
     elif ext == '.xls' or ext == '.xlsx' or ext == '.xlsm':
         return pd.read_excel(file, encoding='latin1')
     else:
-        return [] 
+        return []
 
 
 def style_dataframe(df):
@@ -22,5 +23,4 @@ def style_dataframe(df):
         'background-color': 'black',
         'color': 'lawngreen'
     })
-
 
