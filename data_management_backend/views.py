@@ -7,6 +7,7 @@ from .models import File, Token
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import Http404
+from pandasql import sqldf
 import os
 
 
@@ -122,3 +123,32 @@ def search_value(request):
         html_data = df[df.isin([value]).any(1)].style.applymap(
             lambda x: 'background-color: red' if x == value else 'background-color: lightgreen')
     return HttpResponse(html_data.render())
+
+
+@api_view(http_method_names=['POST'])
+def describe(request):
+    pk = request.data['id']
+    file = get_object_or_404(File, id=pk)
+    df = dataframe_from_file(file.file)
+    return HttpResponse(df.describe().to_html())
+
+
+@api_view(http_method_names=['POST'])
+def transform(request):
+    pk = request.data['id']
+    column = request.data['column']
+    convert_to = request.data['type']
+    file = get_object_or_404(File, id=pk)
+    df = dataframe_from_file(file.file)
+    df = df.astype({column: convert_to}, errors='ignore')
+    return HttpResponse(df.to_html())
+
+
+@api_view(http_method_names=['POST'])
+def execute_query(request):
+    pk = request.data['id']
+    file = get_object_or_404(File, id=pk)
+    query_string = request.data['query']
+    df = dataframe_from_file(file.file)
+    results = sqldf(query_string, locals())
+    return HttpResponse(results.to_html())
