@@ -114,15 +114,12 @@ def search_value(request):
     value = request.data['value']
     html_data = ''
     if value in df.columns:
-        html_data = df[[value]].style.applymap(
-            lambda x: ['background-color: red'] if x == value else 'background-color: lightgreen')
+        html_data = df[[value]]
     elif value in df.index:
-        html_data = df.loc[value].style.applymap(
-            lambda x: 'background-color: red' if x == value else 'background-color: lightgreen')
+        html_data = df.loc[[value]]
     else:
-        html_data = df[df.isin([value]).any(1)].style.applymap(
-            lambda x: 'background-color: red' if x == value else 'background-color: lightgreen')
-    return HttpResponse(html_data.render())
+        html_data = df[df.isin([value]).any(1)]
+    return HttpResponse(html_data.to_html())
 
 
 @api_view(http_method_names=['POST'])
