@@ -157,6 +157,11 @@ def execute_query(request):
 def filter_columns(request):
     pk = request.data['id']
     file = get_object_or_404(File, id=pk)
-    columns = request.data['columns_names'].split(" ")
+    columns = request.data['columns_names'].split(',')
+    columns_list = []
     df = dataframe_from_file(file.file)
-    return HttpResponse(df[columns].to_html())
+    if columns and columns[0]:
+        for column in columns:
+            columns_list.append(column)
+        df = df[columns_list]
+    return HttpResponse(df.to_html())
