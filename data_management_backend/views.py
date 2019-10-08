@@ -27,8 +27,10 @@ def upload(request):
     }
     if len(df) != 0:
         html_data = df.to_html()
+        columns = df.columns.values.tolist()
         json_response = {
             'data_table': html_data,
+            'columns_name': columns,
             'id': file.id,
             'size': df.size,
             'rows': df.shape[0],
@@ -149,3 +151,12 @@ def execute_query(request):
     df = dataframe_from_file(file.file)
     results = sqldf(query_string, locals())
     return HttpResponse(results.to_html())
+
+
+@api_view(http_method_names=['POST'])
+def filter_columns(request):
+    pk = request.data['id']
+    file = get_object_or_404(File, id=pk)
+    columns = request.data['columns_names'].split(" ")
+    df = dataframe_from_file(file.file)
+    return HttpResponse(df[columns].to_html())
