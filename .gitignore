@@ -26,7 +26,6 @@ npm-debug.log
 .DS_Store
 
 # Webpack
-/data_management_frontend/src/*
 /frontend/webpack_bundles/*
 /webpack-stats.json
 /jquery-webpack-stats.json
