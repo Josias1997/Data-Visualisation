@@ -44,7 +44,7 @@ const generateSession = (response, dispatch) => {
 	localStorage.setItem('expirationDate', expirationDate);
 	dispatch(authSuccess(token));
 	dispatch(checkAuthTimeOut(3600));
-}
+};
 
 
 export const authLogin = (username, password) => {
@@ -103,4 +103,4 @@ export const authCheckState = () => {
 			}
 		}
 	}
-}
+};

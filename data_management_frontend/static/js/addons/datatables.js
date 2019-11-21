@@ -11693,7 +11693,7 @@
 	
 	
 			/**
-			 * Details the actions that will be taken when the user types into the
+			 * Statictics the actions that will be taken when the user types into the
 			 * filtering input text box. The variable "_INPUT_", if used in the string,
 			 * is replaced with the HTML text box for the filtering input allowing
 			 * control over where it appears in the string. If "_INPUT_" is not given

@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, HttpResponse
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from helpers.utils import dataframe_from_file, style_dataframe
+from helpers.utils import dataframe_from_file, format_to_json, get_file
 from .models import File, Token
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -21,16 +21,16 @@ def upload(request):
     file.title = name
     file.save()
     df = dataframe_from_file(file.file)
-    html_data = '<div>Extension invalide</div>'
     json_response = {
-        'data_table': html_data
+        'data': 'Extension non valide'
     }
     if len(df) != 0:
-        html_data = df.to_html()
+        json_data = format_to_json(df)
         columns = df.columns.values.tolist()
         json_response = {
-            'data_table': html_data,
-            'columns_name': columns,
+            'name': name,
+            'data': json_data,
+            'columnsNames': columns,
             'id': file.id,
             'size': df.size,
             'rows': df.shape[0],
@@ -42,7 +42,7 @@ def upload(request):
 
 
 @api_view(http_method_names=['POST'])
-def filter(request):
+def filter_by_columns_and_rows(request):
     pk = request.data['id']
     file = get_object_or_404(File, id=pk)
     df = dataframe_from_file(file.file)
@@ -84,7 +84,7 @@ def filter(request):
         filtered_data = df.iloc[begin_line:, begin_column:]
     elif begin_line == '' and end_line != '' and begin_column == '' and end_column != '':
         filtered_data = df.iloc[:end_line, :end_column]
-    return HttpResponse(filtered_data.to_html())
+    return HttpResponse(format_to_json(filtered_data))
 
 
 @api_view(http_method_names=['POST'])
@@ -114,14 +114,14 @@ def search_value(request):
     file = get_object_or_404(File, id=pk)
     df = dataframe_from_file(file.file)
     value = request.data['value']
-    html_data = ''
+    data = ''
     if value in df.columns:
-        html_data = df[[value]]
+        data = df[[value]]
     elif value in df.index:
-        html_data = df.loc[[value]]
+        data = df.loc[[value]]
     else:
-        html_data = df[df.isin([value]).any(1)]
-    return HttpResponse(html_data.to_html())
+        data = df[df.isin([value]).any(1)]
+    return Response(format_to_json(data))
 
 
 @api_view(http_method_names=['POST'])
@@ -129,7 +129,8 @@ def describe(request):
     pk = request.data['id']
     file = get_object_or_404(File, id=pk)
     df = dataframe_from_file(file.file)
-    return HttpResponse(df.describe().to_html())
+    json_object = format_to_json(df.describe().transpose())
+    return Response(json_object)
 
 
 @api_view(http_method_names=['POST'])
@@ -140,7 +141,7 @@ def transform(request):
     file = get_object_or_404(File, id=pk)
     df = dataframe_from_file(file.file)
     df = df.astype({column: convert_to}, errors='ignore')
-    return HttpResponse(df.to_html())
+    return Response(format_to_json(df))
 
 
 @api_view(http_method_names=['POST'])
@@ -150,11 +151,11 @@ def execute_query(request):
     query_string = request.data['query']
     df = dataframe_from_file(file.file)
     results = sqldf(query_string, locals())
-    return HttpResponse(results.to_html())
+    return Response(format_to_json(results))
 
 
 @api_view(http_method_names=['POST'])
-def filter_columns(request):
+def filter_by_columns(request):
     pk = request.data['id']
     file = get_object_or_404(File, id=pk)
     columns = request.data['columns_names'].split(',')
@@ -164,4 +165,4 @@ def filter_columns(request):
         for column in columns:
             columns_list.append(column)
         df = df[columns_list]
-    return HttpResponse(df.to_html())
+    return Response(format_to_json(df))

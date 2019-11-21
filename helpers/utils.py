@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+from data_management_backend.models import File
 import pandas as pd
 from tabula import read_pdf
 import os
@@ -28,12 +30,29 @@ def dataframe_from_file(file):
         return []
 
 
-def style_dataframe(df):
-    return df.style.set_properties(**{
-        'font-size': '11pt',
-        'font-family': 'Arial',
-        'font-weight': 'bold',
-        'background-color': 'black',
-        'color': 'lawngreen'
-    })
+def format_to_json(df):
+    columns = []
+    rows = []
+    for column in df.columns.values.tolist():
+        column_details = {
+            'name': column,
+            'label': column,
+            'options': {
+                'filter': True,
+                'sort': True
+            }
+        }
+        columns.append(column_details)
 
+    for index, row in df.iterrows():
+        row_details = {}
+        for column in df.columns.values.tolist():
+            row_details[column] = row[column]
+        rows.append(row_details)
+
+    json_object = {'columns': columns, 'rows': rows}
+    return json_object
+
+
+def get_file(pk):
+    return get_object_or_404(File, id=pk)
