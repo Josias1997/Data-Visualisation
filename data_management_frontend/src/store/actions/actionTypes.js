@@ -19,3 +19,13 @@ export const COLUMN_INPUT_VALUE_CHANGED = 'COLUMN_INPUT_VALUE_CHANGED';
 
 export const PARAMS_FOR_FILTERING_CHANGED = 'PARAMS_FOR_FILTERING_CHANGED';
 
+export const OPEN_TABLE = 'OPEN_TABLE';
+export const OPEN_PLOT = 'OPEN_PLOT';
+export const OPEN_TESTS = 'OPEN_TESTS';
+
+export const TEST_START = 'TEST_START';
+export const TEST_SUCCESS = 'TEST_SUCCESS';
+export const TEST_FAIL = 'TEST_FAIL';
+
+
+

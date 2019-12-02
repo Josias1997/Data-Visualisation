@@ -4,7 +4,7 @@ import MUIDataTable from 'mui-datatables';
 import { connect } from 'react-redux';
 
 
-const DataTable = ({loading, data, name}) => {
+const DataTable = ({loading, data, name, path}) => {
     const options = {
         filterType: "dropdown",
         responsive: "scroll"
@@ -13,11 +13,11 @@ const DataTable = ({loading, data, name}) => {
         <div className="container justify-content-center mt-5 mb-3">
             {
                 !loading ? <MUIDataTable
-                    title={"Données du fichier " + name}
-                    columns={data.columns}
-                    data={data.rows}
-                    options={options}
-                /> : <Spinner/>
+                title={"Données du fichier " + name}
+                columns={data.columns}
+                data={data.rows}
+                options={options}
+            /> : <Spinner/>
             }
         </div>
     );

@@ -19,9 +19,6 @@ const Statistics = ({fileId, onDescribeHandler}) => {
 const mapStateToProps = state => {
     return {
         fileId: state.fileUpload.id,
-        size: state.fileUpload.size,
-        rows: state.fileUpload.rows,
-        columns: state.fileUpload.columns
     }
 };
 

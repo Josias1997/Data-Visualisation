@@ -5,6 +5,7 @@ const initialState = {
     name: '',
     file: undefined,
     file_data: undefined,
+    path: undefined,
     id: undefined,
     loading: false,
     error: null,
@@ -25,6 +26,7 @@ const uploadSuccess = (state, action) => {
     return updateObject(state, {
         name: action.details.name,
         file_data: action.details.data,
+        path: action.details.path,
         id: action.details.id,
         loading: false,
         error: null,

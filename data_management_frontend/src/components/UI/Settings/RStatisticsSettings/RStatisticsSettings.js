@@ -1,10 +1,10 @@
 import React from 'react';
 import RFunctionsInput from './RFunctionsInput/RFunctionsInput';
 
-const RStatisticsSettings = props => {
+const RStatisticsSettings = () => {
     return (
         <>
-           <RFunctionsInput />
+           <RFunctionsInput/>
         </>
     );
 }

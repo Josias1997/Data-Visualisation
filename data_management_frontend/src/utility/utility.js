@@ -39,3 +39,8 @@ export const formatErrorData = (errorMessage) => {
 		]
 	};
 };
+
+export const mapDataColumns = table => {
+	return table.map(element => element.label);
+};
+

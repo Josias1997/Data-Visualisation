@@ -2,13 +2,19 @@ from django.shortcuts import render, get_object_or_404, HttpResponse
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from helpers.utils import dataframe_from_file, format_to_json, get_file
+from helpers.utils import dataframe_from_file, format_to_json, compute_stats
 from .models import File, Token
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import Http404
 from pandasql import sqldf
+import matplotlib.pyplot as plt
 import os
+import io
+import base64
+from django.conf import settings
+import scipy.stats
+import pandas as pd
 
 
 # Create your views here.
@@ -30,6 +36,7 @@ def upload(request):
         json_response = {
             'name': name,
             'data': json_data,
+            'path': file.file.url,
             'columnsNames': columns,
             'id': file.id,
             'size': df.size,
@@ -166,3 +173,48 @@ def filter_by_columns(request):
             columns_list.append(column)
         df = df[columns_list]
     return Response(format_to_json(df))
+
+
+@api_view(['POST'])
+def plot(request):
+    pk = request.data['id']
+    columns = request.data['columns'].split(",")
+    x = request.data['x']
+    kind = request.data['kind']
+    file = get_object_or_404(File, id=pk)
+    df = dataframe_from_file(file.file)
+    try:
+        df.plot(kind=kind, x=x, y=columns)
+        img = io.BytesIO()
+        plt.savefig(img, format="png")
+        img.seek(0)
+        graph_url = base64.b64encode(img.getvalue()).decode()
+        return Response({
+            'plot': f'data:image/png;base64,{graph_url}',
+            'error': False
+        })
+    except Exception as e:
+        return Response({
+            'plot': '',
+            'error': f'Error: {str(e)}'
+        })
+
+
+@api_view(['POST'])
+def stats(request):
+    pk = request.data['id']
+    file = get_object_or_404(File, id=pk)
+    df = dataframe_from_file(file.file)
+    x = request.data['x']
+    y = request.data['y']
+    test = request.data['test']
+    x_axis = df[[x]].to_numpy()
+    y_axis = df[[y]].to_numpy()
+    response = {}
+    try:
+        response['result'] = compute_stats(x_axis.ravel(), y_axis.ravel(), test)
+        response['error'] = False
+    except Exception as e:
+        response['result'] = ''
+        response['error'] = str(e)
+    return Response(response)

@@ -10,4 +10,6 @@ urlpatterns = [
 	path('execute-query/', views.execute_query, name="query"),
 	path('filter-columns/', views.filter_by_columns, name="filter-column"),
 	path('login/', views.login, name='login'),
+	path('plot/', views.plot, name='plot'),
+	path('stats/', views.stats, name='stats')
 ]

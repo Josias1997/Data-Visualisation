@@ -27,3 +27,16 @@ export {
     checkAuthTimeOut,
     logout,
 } from './auth';
+
+export {
+    openTable,
+    openPlot,
+    openTests
+} from './statistics';
+
+export {
+    testFail,
+    testSuccess,
+    startTest,
+    test
+} from "./tests";
