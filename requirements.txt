@@ -1,6 +1,5 @@
 cycler==0.10.0
 distro==1.4.0
-dj-database-url==0.5.0
 Django==2.2.5
 django-cleanup==4.0.0
 django-cors-headers==3.1.0
@@ -13,6 +12,7 @@ Jinja2==2.10.3
 kiwisolver==1.1.0
 MarkupSafe==1.1.1
 matplotlib==3.1.2
+mysqlclient==1.4.5
 numpy==1.17.2
 pandas==0.25.1
 pandasql==0.7.3
