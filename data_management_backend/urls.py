@@ -11,5 +11,6 @@ urlpatterns = [
 	path('filter-columns/', views.filter_by_columns, name="filter-column"),
 	path('login/', views.login, name='login'),
 	path('plot/', views.plot, name='plot'),
-	path('stats/', views.stats, name='stats')
+	path('stats/', views.stats, name='stats'),
+	path('fisher-test/', views.fisher_test, name="fisher_exact"),
 ]

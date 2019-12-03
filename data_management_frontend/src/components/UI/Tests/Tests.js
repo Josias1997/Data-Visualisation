@@ -10,6 +10,7 @@ import { connect } from "react-redux";
 import ResultsTable from "../ResultsTable/ResultsTable";
 import Alert from "../Alert/Alert";
 import Spinner from "../Spinner/Spinner";
+import CustomDataTable from "../CustomDataTable/CustomDataTable";
 
 
 const useStyles = makeStyles(theme => ({
@@ -32,7 +33,9 @@ const Tests = ({ fileId, data }) => {
     const [yValue, setYValue] = useState(mapDataColumns(data.columns)[0]);
 
     useEffect(() => {
-        startTest();
+        if(test !== 'fisher_exact') {
+            startTest();
+        }
     }, [test, xValue, yValue]);
 
     const startTest = () => {
@@ -61,6 +64,12 @@ const Tests = ({ fileId, data }) => {
     const handleYChange = event => {
         setYValue(event.target.value);
     }
+
+    const updateResult = (data) => {
+        setResult(data.result);
+        setError(data.error);
+    }
+    
     let content = null;
     if (result !== '') {
         content = <ResultsTable test={test} result={result} />
@@ -93,31 +102,37 @@ const Tests = ({ fileId, data }) => {
                     </Select>
                 </FormControl>
             </div>
-            <div className="col-md-4 d-flex justify-content-center">
-                <FormControl className={classes.formControl}>
-                    <InputLabel id="xValue">Set X value</InputLabel>
-                    <Select
-                        labelId="xValue"
-                        id="select-value"
-                        value={xValue}
-                        onChange={handleXChange}
-                        >
-                        {data.columns.map(column => <MenuItem value={column.label}>{column.label}</MenuItem>)}
-                    </Select>
-                </FormControl>
-            </div>
-            <div className="col-md-4 d-flex justify-content-center">
-                <FormControl className={classes.formControl}>
-                    <InputLabel id="xValue">Set Y value</InputLabel>
-                    <Select
-                        labelId="xValue"
-                        id="select-value"
-                        value={yValue}
-                        onChange={handleYChange}>
-                        {data.columns.map(column => <MenuItem value={column.label}>{column.label}</MenuItem>)}
-                    </Select>
-                </FormControl>
-            </div>
+            {
+                test === 'fisher_exact' ? <div className="col-md-8 d-flex justify-content-center">
+                    <CustomDataTable columns={data.columns} rows={data.rows} updateResult={updateResult} />
+                </div> : <>
+                <div className="col-md-4 d-flex justify-content-center">
+                    <FormControl className={classes.formControl}>
+                        <InputLabel id="xValue">Set X value</InputLabel>
+                        <Select
+                            labelId="xValue"
+                            id="select-value"
+                            value={xValue}
+                            onChange={handleXChange}
+                            >
+                            {data.columns.map(column => <MenuItem value={column.label}>{column.label}</MenuItem>)}
+                        </Select>
+                    </FormControl>
+                </div>
+                <div className="col-md-4 d-flex justify-content-center">
+                    <FormControl className={classes.formControl}>
+                        <InputLabel id="xValue">Set Y value</InputLabel>
+                        <Select
+                            labelId="xValue"
+                            id="select-value"
+                            value={yValue}
+                            onChange={handleYChange}>
+                            {data.columns.map(column => <MenuItem value={column.label}>{column.label}</MenuItem>)}
+                        </Select>
+                    </FormControl>
+                </div>
+                </>
+            }
             <div className="col-md-12 d-flex justify-content-center">
                 {
                     loading ? <Spinner /> : content
@@ -133,6 +148,5 @@ export const mapStateToProps = state => {
         data: state.fileUpload.file_data,
     }
 }
-
 
 export default connect(mapStateToProps)(Tests);

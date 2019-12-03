@@ -83,7 +83,7 @@ def compute_stats(x, y, test):
     elif test == 'chisquare':
         return st.chisquare(x)
     elif test == 'fisher_exact':
-        return st.fisher_exact(x, y)
+        return st.fisher_exact([[x[0], x[1]], [y[0], y[1]]])
     elif test == 'wilcoxon':
         return st.wilcoxon(x, y)
     elif test == 'zscore':

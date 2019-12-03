@@ -165,6 +165,29 @@ const ResultsTable = ({test, result}) => {
                 };
             break;
         case 'fisher_exact':
+            data = {
+                columns: [
+                    {
+                        label: 'Fonction',
+                        field: 'function',
+                    },
+                    {
+                        label: 'Oddsratio',
+                        field: 'oddsratio'
+                    },
+                    {
+                        label: 'Pvalue',
+                        field: 'pvalue'
+                    }
+                ],
+                rows: [
+                    {
+                        'function': 'fisher_exact',
+                        'oddsratio': result[0],
+                        'pvalue': result[1]
+                    }
+                ]
+            };
             break;
         case 'wilcoxon':
             data.rows[0].function = 'wilcoxon';

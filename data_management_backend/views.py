@@ -15,6 +15,7 @@ import base64
 from django.conf import settings
 import scipy.stats
 import pandas as pd
+from decimal import Decimal
 
 
 # Create your views here.
@@ -218,3 +219,19 @@ def stats(request):
         response['result'] = ''
         response['error'] = str(e)
     return Response(response)
+
+
+@api_view(['POST'])
+def fisher_test(request):
+    table = request.data['table'].split(",")
+    x_axis = [Decimal(x) for x in table[:len(table)//2]]
+    y_axis = [Decimal(y) for y in table[len(table)//2:]]
+    response = {}
+    try:
+        response['result'] = compute_stats(x_axis, y_axis, 'fisher_exact')
+        response['error'] = False
+    except Exception as e:
+        response['result'] = ''
+        response['error'] = str(e)
+    return Response(response)
+

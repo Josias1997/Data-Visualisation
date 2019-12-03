@@ -7,6 +7,7 @@ import Settings from "../../UI/Settings/Settings";
 import StaticticsTable from '../../UI/StatisticsTable/StaticticsTable';
 import Plot from '../../UI/Plot/Plot';
 import Tests from '../../UI/Tests/Tests';
+import Spinner from '../../UI/Spinner/Spinner';
 
 const RStatisticsPage = props => {
     let content = null;
@@ -41,7 +42,9 @@ const RStatisticsPage = props => {
             </Fragment> : <AlignCenter style={{
                     marginTop: '15%'
                 }}>
-                    <Form/>
+                    {
+                        !props.loading ? <Form /> : <Spinner />
+                    }
                 </AlignCenter>
             }
            
@@ -53,7 +56,8 @@ const mapStateToProps = state => {
         id: state.fileUpload.id,
         openPlot: state.statistics.openPlot,
         openTable: state.statistics.openTable,
-        openTests: state.statistics.openTests
+        openTests: state.statistics.openTests,
+        loading: state.fileUpload.loading,
     }
 };
 

@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {
     MDBNavbar, MDBNavbarBrand, MDBNavbarNav, MDBNavItem, MDBDropdown,
     MDBDropdownToggle, MDBDropdownMenu, MDBDropdownItem, MDBIcon, MDBNavbarToggler,
-    MDBCollapse, MDBNavLink
+    MDBCollapse, MDBNavLink, MDBBtn
 } from "mdbreact"
 import {connect} from 'react-redux';
 import * as actions from '../../store/actions/auth';
@@ -32,16 +32,11 @@ const Header = props => {
                         <MDBNavItem>
                             <MDBNavLink to={"/modelisation"}>Modélisation</MDBNavLink>
                         </MDBNavItem>
-                        <MDBNavItem>
-                            <MDBDropdown>
-                                <MDBDropdownToggle nav caret>
-                                    <MDBIcon icon="power-off"/>
-                                </MDBDropdownToggle>
-                                <MDBDropdownMenu className="dropdown-default">
-                                    <MDBDropdownItem href="#!" onClick={props.logout}>Déconnexion</MDBDropdownItem>
-                                </MDBDropdownMenu>
-                            </MDBDropdown>
-                        </MDBNavItem>
+                    </MDBNavbarNav>
+                    <MDBNavbarNav right>
+                        <MDBBtn nav onClick={props.logout}>
+                            <MDBIcon icon="power-off"/>
+                        </MDBBtn>
                     </MDBNavbarNav>
                 </MDBCollapse> : null
             }

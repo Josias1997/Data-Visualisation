@@ -4,6 +4,7 @@ import DataTable from '../../UI/DataTable/DataTable';
 import { connect } from "react-redux";
 import AlignCenter from "../../UI/AlignCenter/AlignCenter";
 import Form from "../../UI/Form/Form";
+import Spinner from '../../UI/Spinner/Spinner';
 
 const ModelisationPage = props => {
     return (
@@ -12,7 +13,9 @@ const ModelisationPage = props => {
                 props.id !== undefined ? <DataTable /> : <AlignCenter style={{
                     marginTop: '15%'
                 }}>
-                    <Form/>
+                    {
+                        !props.loading ? <Form/> : <Spinner />
+                    }
                 </AlignCenter>
             }
         </MDBContainer>
@@ -22,6 +25,7 @@ const ModelisationPage = props => {
 const mapStateToProps = state => {
     return {
         id: state.fileUpload.id,
+        loading: state.fileUpload.loading,
     }
 }
 
