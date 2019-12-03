@@ -25,7 +25,7 @@ SECRET_KEY = 'jq3qq8!wkeh=-b!#0a=tk#ks-nnqvfvh=@3z=lhxrw6z=6k&##'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'datavisualise.herokuapp.com']
 
 
 # Application definition
