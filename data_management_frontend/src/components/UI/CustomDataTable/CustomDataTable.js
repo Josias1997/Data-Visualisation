@@ -51,7 +51,7 @@ const CustomDataTable = ({columns, rows, updateResult}) => {
     };
 
     return (
-        <table className="table table-bordered table-hover table-responsive nowrap">
+        <table className="table table-hover table-responsive nowrap">
             <thead>
                 <th>#</th>
                 {

@@ -44,3 +44,7 @@ export const mapDataColumns = table => {
 	return table.map(element => element.label);
 };
 
+export const range = (startIndex = 0, endIndex) => {
+	return [...Array(endIndex).keys()].map(index => index + startIndex);
+};
+
