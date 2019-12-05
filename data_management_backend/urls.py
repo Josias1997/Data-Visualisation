@@ -13,4 +13,5 @@ urlpatterns = [
 	path('plot/', views.plot, name='plot'),
 	path('stats/', views.stats, name='stats'),
 	path('fisher-test/', views.fisher_test, name="fisher_exact"),
+	path('math-functions/', views.math_functions, name="maths-functions"),
 ]

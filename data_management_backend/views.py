@@ -2,7 +2,8 @@ from django.shortcuts import render, get_object_or_404, HttpResponse
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from helpers.utils import dataframe_from_file, format_to_json, compute_stats
+from helpers.utils import (dataframe_from_file, 
+    format_to_json, compute_stats, call_math_function, format_np_array)
 from .models import File, Token
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -233,5 +234,22 @@ def fisher_test(request):
     except Exception as e:
         response['result'] = ''
         response['error'] = str(e)
+
+
+@api_view(['POST'])
+def math_functions(request):
+    pk = request.data['id']
+    file = get_object_or_404(File, id=pk)
+    df = dataframe_from_file(file.file)
+    function_name = request.data['function']
+    x = request.data['x']
+    response = {'columns': [], 'rows': []}
+    if function_name != '' and x != '':
+        try: 
+            column = df[[x]].to_numpy().ravel()
+            np_array = call_math_function(function_name, column)
+            response = format_np_array(np_array.ravel(), function_name, column, x)
+        except Exception as e:
+            response["error"] = str(e)
     return Response(response)
 

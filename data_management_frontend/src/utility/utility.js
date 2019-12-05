@@ -48,3 +48,10 @@ export const range = (startIndex = 0, endIndex) => {
 	return [...Array(endIndex).keys()].map(index => index + startIndex);
 };
 
+export const getFunctionsList = () => {
+	return ['log(x)', 'log10(x)', 'abs(x)', 'median(x)', 'quantile(x)', 'round(x)',
+		'signif(x)', 'sin(x)', 'cos(x)', 'tan(x)', 'sqrt(x)', 'max(x)', 'min(x)', 'length(x)',
+		'range(x)', 'sum(x)', 'prod(x)', 'mean(x)', 'var(x)', 'sort(x)'
+	];
+};
+

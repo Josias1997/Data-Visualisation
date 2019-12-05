@@ -34,7 +34,7 @@ const Header = props => {
                         </MDBNavItem>
                     </MDBNavbarNav>
                     <MDBNavbarNav right>
-                        <MDBBtn nav onClick={props.logout}>
+                        <MDBBtn onClick={props.logout}>
                             <MDBIcon icon="power-off"/>
                         </MDBBtn>
                     </MDBNavbarNav>
