@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'data_management.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'vcb0VQtd1L',
         'USER': 'vcb0VQtd1L',
         'PASSWORD': 'BGbNOkog7h',
