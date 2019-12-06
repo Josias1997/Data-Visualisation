@@ -14,4 +14,6 @@ urlpatterns = [
 	path('stats/', views.stats, name='stats'),
 	path('fisher-test/', views.fisher_test, name="fisher_exact"),
 	path('math-functions/', views.math_functions, name="maths-functions"),
+	path('split-data-set/', views.split_data_set, name="split-data-set"),
+	path('preprocessing/', views.preprocessing, name="preprocessing"),
 ]

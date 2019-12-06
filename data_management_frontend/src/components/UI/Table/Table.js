@@ -21,34 +21,36 @@ const Table = ({ columns, rows }) => {
 	return (
 		<>
 			<table className="table table-hover table-responsive nowrap">
-            <thead>
-                <th>#</th>
-                {
-                    columns.map(column => <th key={column.label}>{column.label}</th>)
-                }
-            </thead>
-            <tbody>
-                {
-                    currentRows.map((row, index) => {
-                        return <tr key={index}>
-                            <td><strong>{index + 1}</strong></td>
-                            {
-                                columns.map(column => {
-                                    let count = dataCount.current++;
-                                    return <td key={`${column.label}${index}`} 
-                                        ref={el => refs.current[count] = el} 
-                                        style={{
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {row[column.label]}
-                                    </td>
-                                })
-                            }
-                        </tr>
-                    })
-                }
-            </tbody>
+                <thead>
+                    <tr>
+                    <th>#</th>
+                        {
+                            columns.map(column => <th key={column.field}>{column.field}</th>)
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        currentRows.map((row, index) => {
+                            return <tr key={index}>
+                                <td><strong>{index + 1}</strong></td>
+                                {
+                                    columns.map(column => {
+                                        let count = dataCount.current++;
+                                        return <td key={`${column.field}${index}`} 
+                                            ref={el => refs.current[count] = el} 
+                                            style={{
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {row[column.field]}
+                                        </td>
+                                    })
+                                }
+                            </tr>
+                        })
+                    }
+                </tbody>
         	</table>
         	<nav>
 			  <ul className="pagination pg-blue pagination-sm">

@@ -108,7 +108,7 @@ const Plot = ({ fileId, data }) => {
                             onChange={handleXChange}
                             >
                             {
-                                data.columns.map(column => <MenuItem value={column.label}>{column.label}</MenuItem>)
+                                data.columns.map(column => <MenuItem value={column.field}>{column.field}</MenuItem>)
                             }
                         </Select>
                     </FormControl>

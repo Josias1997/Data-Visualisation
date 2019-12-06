@@ -115,7 +115,7 @@ const Tests = ({ fileId, data }) => {
                             value={xValue}
                             onChange={handleXChange}
                             >
-                            {data.columns.map(column => <MenuItem value={column.label}>{column.label}</MenuItem>)}
+                            {data.columns.map(column => <MenuItem value={column.field}>{column.field}</MenuItem>)}
                         </Select>
                     </FormControl>
                 </div>
@@ -127,7 +127,7 @@ const Tests = ({ fileId, data }) => {
                             id="select-value"
                             value={yValue}
                             onChange={handleYChange}>
-                            {data.columns.map(column => <MenuItem value={column.label}>{column.label}</MenuItem>)}
+                            {data.columns.map(column => <MenuItem value={column.field}>{column.field}</MenuItem>)}
                         </Select>
                     </FormControl>
                 </div>

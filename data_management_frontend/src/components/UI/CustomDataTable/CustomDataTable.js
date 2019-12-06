@@ -55,7 +55,7 @@ const CustomDataTable = ({columns, rows, updateResult}) => {
             <thead>
                 <th>#</th>
                 {
-                    columns.map(column => <th key={column.label}>{column.label}</th>)
+                    columns.map(column => <th key={column.field}>{column.field}</th>)
                 }
             </thead>
             <tbody>
@@ -73,7 +73,7 @@ const CustomDataTable = ({columns, rows, updateResult}) => {
                                             cursor: 'pointer'
                                         }}
                                     >
-                                        {row[column.label]}
+                                        {row[column.field]}
                                     </td>
                                 })
                             }

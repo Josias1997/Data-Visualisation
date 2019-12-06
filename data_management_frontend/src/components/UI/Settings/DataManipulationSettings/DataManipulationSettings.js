@@ -8,7 +8,6 @@ const DataManipulationSettings = props => {
         <>
             <Statistics />
             <SQLQueryForm/>
-            <ConversionForm />
         </>
     );
 }

@@ -5,6 +5,7 @@ from tabula import read_pdf
 import os
 import scipy.stats as st
 import numpy as np
+from sklearn import preprocessing
 
 
 def dataframe_from_file(file):
@@ -37,12 +38,8 @@ def format_to_json(df):
     rows = []
     for column in df.columns.values.tolist():
         column_details = {
-            'name': column,
-            'label': column,
-            'options': {
-                'filter': True,
-                'sort': True
-            }
+            'title': column,
+            'field': column,
         }
         columns.append(column_details)
 
@@ -138,12 +135,12 @@ def call_math_function(function, column):
 def format_np_array(array, function, column, column_name):
     columns = [
         {
-            "name": column_name,
-            "label": column_name, 
+            "title": column_name,
+            "field": column_name, 
         },
         {
-            "name": function, 
-            "label": function
+            "title": function, 
+            "field": function
         }
     ]
     rows = []
@@ -162,3 +159,14 @@ def format_np_array(array, function, column, column_name):
             })
         index = index + 1
     return {'columns': columns, 'rows': rows}
+
+
+def normalize_set(df, function):
+    if function == 'std_scaler':
+        return preprocessing.StandardScaler().fit_transform(df)
+    elif function == 'min_max_scaler':
+        return preprocessing.MinMaxScaler().fit_transform(df)
+    elif function == 'robust_scaler':
+        return preprocessing.RobustScaler().fit_transform(df)
+    elif function == 'normalizer':
+        return preprocessing.Normalizer().fit_transform(df)

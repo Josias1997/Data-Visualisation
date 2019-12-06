@@ -3,13 +3,16 @@ import CSRFToken from '../../../utility/CSRFToken';
 import {onChangeHandler, sendFile} from "../../../store/actions/fileUpload";
 import { connect } from 'react-redux';
 import { MDBInputGroup, MDBBtn, MDBIcon } from "mdbreact";
+import Alert from '../Alert/Alert';
 
 
-const Form = ({file, changeHandler, onSendFileHandler}) => {
+const Form = ({file, changeHandler, onSendFileHandler, error}) => {
     return (
-        <form className="col-md-5 mt-5" method="POST" encType="multipart/form-data">
+        <form className="col-md-5 mt-2" method="POST" encType="multipart/form-data">
             <CSRFToken/>
-            
+            {
+              error !== null ? <Alert>{error.message}</Alert> : null
+            }
         <MDBInputGroup
           prepend={
             <MDBBtn
@@ -45,6 +48,7 @@ const Form = ({file, changeHandler, onSendFileHandler}) => {
 const mapStateToProps = state => {
     return {
         file: state.fileUpload.file,
+        error: state.fileUpload.error,
     }
 };
 

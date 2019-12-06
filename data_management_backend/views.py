@@ -3,20 +3,22 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from helpers.utils import (dataframe_from_file, 
-    format_to_json, compute_stats, call_math_function, format_np_array)
+    format_to_json, compute_stats, call_math_function, 
+    format_np_array, normalize_set)
 from .models import File, Token
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import Http404
 from pandasql import sqldf
 import matplotlib.pyplot as plt
-import os
-import io
 import base64
 from django.conf import settings
 import scipy.stats
 import pandas as pd
 from decimal import Decimal
+import os
+import io
+from sklearn.model_selection import train_test_split
 
 
 # Create your views here.
@@ -149,7 +151,10 @@ def transform(request):
     convert_to = request.data['type']
     file = get_object_or_404(File, id=pk)
     df = dataframe_from_file(file.file)
-    df = df.astype({column: convert_to}, errors='ignore')
+    try:
+        df = df.astype({column: convert_to}, errors='ignore')
+    except Exception as e:
+        pass
     return Response(format_to_json(df))
 
 
@@ -234,6 +239,7 @@ def fisher_test(request):
     except Exception as e:
         response['result'] = ''
         response['error'] = str(e)
+    return Response(response)
 
 
 @api_view(['POST'])
@@ -249,7 +255,45 @@ def math_functions(request):
             column = df[[x]].to_numpy().ravel()
             np_array = call_math_function(function_name, column)
             response = format_np_array(np_array.ravel(), function_name, column, x)
+            response['error'] = False
         except Exception as e:
             response["error"] = str(e)
     return Response(response)
+
+
+@api_view(['POST'])
+def split_data_set(request):
+    pk = request.data['id']
+    file = get_object_or_404(File, id=pk)
+    df = dataframe_from_file(file.file)
+    response = {'training_set': {}, 'test_set': {}, 'error': False}
+    try:
+        training_set, test_set = train_test_split(df, test_size=0.2)
+        response = {
+            'training_set': format_to_json(pd.DataFrame(training_set)),
+            'test_set': format_to_json(pd.DataFrame(test_set)),
+            'error': False
+        }
+    except Exception as e:
+        response['error'] = str(e)
+    return Response(response)
+
+
+@api_view(['POST'])
+def preprocessing(request):
+    pk = request.data['id']
+    file = get_object_or_404(File, id=pk)
+    df = dataframe_from_file(file.file).select_dtypes(include=['number'])
+    function = request.data['normalizer']
+    response = {'normalized_training_set': {}, 'error': False}
+    try:
+        training_set, test_set = train_test_split(df, test_size=0.2)
+        response = {
+            'normalized_training_set': normalize_set(training_set, function),
+            'error': False
+        }
+    except Exception as e:
+        response['error'] = str(e)
+    return Response(response)
+
 

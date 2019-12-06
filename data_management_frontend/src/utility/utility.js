@@ -41,7 +41,7 @@ export const formatErrorData = (errorMessage) => {
 };
 
 export const mapDataColumns = table => {
-	return table.map(element => element.label);
+	return table.map(element => element.field);
 };
 
 export const range = (startIndex = 0, endIndex) => {
