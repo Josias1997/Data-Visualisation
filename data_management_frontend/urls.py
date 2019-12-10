@@ -1,8 +1,6 @@
-from django.urls import path
+from django.urls import re_path
 from .views import index
 
 urlpatterns = [
-	path('', index, name='index'),
-	path('r-statistics', index, name='statictics'),
-	path('modelisation', index, name='modelisation')
+	re_path(r'^.*$', index, name='index'),
 ]

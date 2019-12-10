@@ -15,6 +15,8 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import { splitDataSet, normalize } from "../../../store/actions/";
+import { options } from '../../../utility/settings';
 
 const useStyles = makeStyles(theme => ({
     formControl: {
@@ -28,17 +30,7 @@ const useStyles = makeStyles(theme => ({
 
 const ModelisationPage = props => {
     const classes = useStyles();
-    const [trainingSet, setTrainingSet] = useState({});
-    const [testSet, setTestSet] = useState({});
-    const [processing, setProcessing] = useState(false);
-    const [error, setError] = useState(false);
     const [normalizer, setNormalizer] = useState('std_scaler');
-    const [normalizedTrainingSet, setNormalizedTrainingSet] = useState([]);
-    const [normalized, setNormalized] = useState(false);
-    const options = {
-        filterType: "dropdown",
-        responsive: "scroll"
-    };
 
     useEffect(() => {
         if(props.id !== undefined) {
@@ -49,17 +41,7 @@ const ModelisationPage = props => {
 
     const splitDataSet = () => {
         const data = createJsonData(['id'], [props.id]);
-        setProcessing(true);
-        axios.post('/api/split-data-set/', data)
-        .then(({data}) => {
-            setTrainingSet(data.training_set);
-            setTestSet(data.test_set);
-            setError(data.error);
-            setProcessing(false);
-        }).catch(error => {
-            setError(error.message);
-            setProcessing(false);
-        });
+        props.onSplitDataSet(data);
     };
     const handleChange = (event) => {
         setNormalizer(event.target.value);
@@ -67,24 +49,13 @@ const ModelisationPage = props => {
 
     const normalize = () => {
         const data = createJsonData(['id', 'normalizer'], [props.id, normalizer]);
-        setProcessing(true);
-        axios.post('/api/preprocessing/', data)
-        .then(({data}) => {
-            console.log(data);
-            setNormalizedTrainingSet(data.normalized_training_set);
-            setError(data.error);
-            setProcessing(false);
-            setNormalized(true);
-        }).catch(error => {
-            setError(error.message);
-            setProcessing(false);
-        })
+        props.onNormalize(data);
     }
 
     return (
         <MDBContainer>
             {
-                props.id !== undefined ? (!processing ? <>
+                props.id !== undefined ? <>
                 <div className="container justify-content-center mt-5 mb-3">
                     <FormControl className={classes.formControl}>
                         <InputLabel id="function">Normaliser les données</InputLabel>
@@ -100,30 +71,44 @@ const ModelisationPage = props => {
                             <MenuItem value='normalizer'>Normalizer</MenuItem>
                         </Select>
                     </FormControl>
-                    <MDBBtn onClick={normalize}> <MDBIcon icon={"play"} /> Go</MDBBtn>
+                    <MDBBtn onClick={normalize}> <MDBIcon className="mr-2" icon={"play"} /> Go</MDBBtn>
                 </div>
-                <div className="container justify-content-center mt-5 mb-3">
                 {
-                    normalized ? <TableWithNumericValues data={normalizedTrainingSet} /> : null
-                }
+                    (!props.processing ? <> 
+                        <div className="container justify-content-center mt-5 mb-3">
+                        {
+                            props.normalized ? <TableWithNumericValues data={props.normalizedTrainingSet} /> : null
+                        }
                 </div>
                 <div className="container justify-content-center mt-5 mb-3">
                     <MaterialTable
                     title={"Training set"}
-                    columns={trainingSet.columns}
-                    data={trainingSet.rows}
+                    columns={props.trainingSet.columns}
+                    data={props.trainingSet.rows}
                     options={options}
+                    editable={{
+                        onRowAdd: newData => addRow(newData),
+                        onRowUpdate: (newData, oldData) => updateRow(newData, oldData),
+                        onRowDelete: oldData => deleteRow(oldData)
+                    }}
                 />
                 </div>
                 <div className="container justify-content-center mt-5 mb-3">
                     <MaterialTable
                     title={"Test set"}
-                    columns={testSet.columns}
-                    data={testSet.rows}
+                    columns={props.testSet.columns}
+                    data={props.testSet.rows}
                     options={options}
+                    editable={{
+                        onRowAdd: newData => addRow(newData),
+                        onRowUpdate: (newData, oldData) => updateRow(newData, oldData),
+                        onRowDelete: oldData => deleteRow(oldData)
+                    }}
                  />
-                 </div>
-                </> : <Spinner />) : <AlignCenter style={{
+                 </div></> : <Spinner />)
+                }
+
+                </> : <AlignCenter style={{
                     marginTop: '15%'
                 }}>
                     {
@@ -139,7 +124,20 @@ const mapStateToProps = state => {
     return {
         id: state.fileUpload.id,
         loading: state.fileUpload.loading,
+        trainingSet: state.modelisation.trainingSet,
+        testSet: state.modelisation.testSet,
+        processing: state.modelisation.processing,
+        error: state.modelisation.error,
+        normalized: state.modelisation.normalized,
+        normalizedTrainingSet: state.modelisation.normalizedTrainingSet
     }
 }
 
-export default connect(mapStateToProps)(ModelisationPage);
+const mapDispatchToProps = dispatch => {
+    return {
+        onSplitDataSet: (data) => dispatch(splitDataSet(data)),
+        onNormalize: (data) => dispatch(normalize(data))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ModelisationPage);

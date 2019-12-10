@@ -24,13 +24,22 @@ const Header = props => {
                 props.isAuthenticated ? <MDBCollapse isOpen={isOpen} navbar>
                     <MDBNavbarNav left>
                         <MDBNavItem>
-                            <MDBNavLink to={"/"}>Manipulation</MDBNavLink>
+                            <MDBNavLink to={"/"}>Data Pre-processing</MDBNavLink>
                         </MDBNavItem>
                         <MDBNavItem>
-                            <MDBNavLink to={"/r-statistics"}>Statistiques</MDBNavLink>
+                            <MDBNavLink to={"/r-statistics"}>Data Exploratory Analysis</MDBNavLink>
                         </MDBNavItem>
                         <MDBNavItem>
-                            <MDBNavLink to={"/modelisation"}>Modélisation</MDBNavLink>
+                            <MDBNavLink to={"/modelisation"}>Ready for Modelling</MDBNavLink>
+                        </MDBNavItem>
+                        <MDBNavItem>
+                            <MDBNavLink to={"/machine-learning"}>Machine Learning</MDBNavLink>
+                        </MDBNavItem>
+                        <MDBNavItem>
+                            <MDBNavLink to={"/deep-learning"}>Deep Learning</MDBNavLink>
+                        </MDBNavItem>
+                        <MDBNavItem>
+                            <MDBNavLink to={"/dashboard"}>Dashboard</MDBNavLink>
                         </MDBNavItem>
                     </MDBNavbarNav>
                     <MDBNavbarNav right>

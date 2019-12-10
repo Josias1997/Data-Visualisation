@@ -3,44 +3,10 @@ import Spinner from "../Spinner/Spinner";
 import MaterialTable from "material-table";
 import { connect } from 'react-redux';
 import { updateDataSuccess } from '../../../store/actions';
-import { options, localization } from '../../../utility/settings';
+import { options, localization, 
+    addRow, updateRow, deleteRow } from '../../../utility/settings';
 
 const DataTable = ({loading, data, name, path, updateData}) => {
-
-    const addRow = (newData) => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                let data_copy = JSON.parse(JSON.stringify(data));
-                data_copy.rows.push(newData);
-                updateData(data_copy);
-                resolve();
-            }, 1000);
-        });
-    };
-
-    const updateRow = (newData, oldData) => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                let data_copy = JSON.parse(JSON.stringify(data));
-                let index = data_copy.rows.findIndex(row => JSON.stringify(row) === JSON.stringify(oldData));
-                data_copy.rows[index] = newData;
-                updateData(data_copy);
-                resolve();
-            }, 1000);
-        });
-    };
-
-    const deleteRow = (oldData) => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                let data_copy = JSON.parse(JSON.stringify(data));
-                let index = data_copy.rows.findIndex(row => JSON.stringify(row) === JSON.stringify(oldData));
-                data_copy.rows.splice(index, 1);
-                updateData(data_copy);
-                resolve();
-            }, 1000);
-        });
-    };
     return (
         <div className="container justify-content-center mt-5 mb-3">
             {

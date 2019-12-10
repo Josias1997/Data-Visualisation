@@ -6,6 +6,8 @@ import fileUploadReducer from './store/reducers/fileUpload';
 import parametersReducer from './store/reducers/parameters';
 import statisticsReducer from './store/reducers/statistics';
 import testsReducer from './store/reducers/tests';
+import modelisationReducer from './store/reducers/modelisation';
+import machineLearningReducer from './store/reducers/machine_learning';
 import { Provider } from 'react-redux';
 import { createStore, compose, applyMiddleware, combineReducers } from 'redux';
 import thunk from 'redux-thunk';
@@ -16,6 +18,8 @@ let rootReducer = combineReducers({
 	parameters: parametersReducer,
 	statistics: statisticsReducer,
 	tests: testsReducer,
+	modelisation: modelisationReducer,
+	machine_learning: machineLearningReducer,
 });
 
 const composeEnhancers = process.env.NODE_ENV === 'development' ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ : null || compose;

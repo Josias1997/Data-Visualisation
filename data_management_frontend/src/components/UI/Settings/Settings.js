@@ -5,17 +5,23 @@ import { connect } from "react-redux";
 import RStatisticsSettings from "./RStatisticsSettings/RStatisticsSettings";
 import ModelingSettings from "./ModelingSettings/ModelingSettings";
 import DataManipulationSettings from "./DataManipulationSettings/DataManipulationSettings";
+import MachineLearningSettings from "./MachineLearningSettings/MachineLearningSettings";
 
-const Settings = ({page, onFileRemove}) => {
+const Settings = ({page, onFileRemove, onFit, onPredict}) => {
     let content = null;
-    if (page === 'data-manipulation') {
+    switch(page) {
+      case 'data-manipulation':
         content = <DataManipulationSettings />;
-    }
-    else if (page === 'r-statistics') {
+        break;
+      case 'r-statistics':
         content = <RStatisticsSettings />;
-    }
-    else if (page === 'modeling') {
-        content = <ModelingSettings />
+        break;
+      case 'modeling':
+        content = <ModelingSettings />;
+        break;
+      case 'machine-learning':
+        content = <MachineLearningSettings onFit={onFit} onPredict={onPredict} />;
+        break;
     }
     return (
        <div className={"row d-flex justify-content-center"}>

@@ -40,3 +40,23 @@ export {
     startTest,
     test
 } from "./tests";
+
+export {
+    startPreprocessing,
+    preprocessingDataSplitSuccess,
+    preprocessingNormalizingSuccess,
+    preprocessingFail,
+    splitDataSet,
+    normalize,
+
+} from "./modelisation";
+
+export {
+    processingStart,
+    fitSuccess,
+    predictSuccess,
+    processingFail,
+    fit,
+    predict
+
+} from "./machine_learning";
