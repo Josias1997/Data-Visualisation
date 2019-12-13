@@ -3,9 +3,16 @@ from data_management_backend.models import File
 import pandas as pd
 from tabula import read_pdf
 import os
+import base64
 import scipy.stats as st
 import numpy as np
 from sklearn import preprocessing
+from sklearn.preprocessing import (LabelEncoder, OneHotEncoder, StandardScaler, 
+    RobustScaler, MinMaxScaler, Normalizer)
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from io import BytesIO
+import matplotlib.pyplot as plt
 
 
 def dataframe_from_file(file):
@@ -163,10 +170,106 @@ def format_np_array(array, function, column, column_name):
 
 def normalize_set(df, function):
     if function == 'std_scaler':
-        return preprocessing.StandardScaler().fit_transform(df)
+        return StandardScaler().fit_transform(df)
     elif function == 'min_max_scaler':
-        return preprocessing.MinMaxScaler().fit_transform(df)
+        return MinMaxScaler().fit_transform(df)
     elif function == 'robust_scaler':
-        return preprocessing.RobustScaler().fit_transform(df)
+        return RobustScaler().fit_transform(df)
     elif function == 'normalizer':
-        return preprocessing.Normalizer().fit_transform(df)
+        return Normalizer().fit_transform(df)
+
+
+def multi_linear_regression(df, x, y):
+    response = {'predict_result': {}, 'error': False}
+    try:
+        # Multiple Linear Regression
+        X = df[[x]]
+        y = df[[y]]
+
+        # Encoding categorical data
+        labelencoder = LabelEncoder()
+        X = labelencoder.fit_transform(X)
+        onehotencoder = OneHotEncoder(categories='auto')
+        X = onehotencoder.fit_transform(X).toarray()
+
+        # Avoiding the Dummy Variable Trap
+        X = X[:, 1:]
+
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
+
+        # Feature Scaling
+        sc_X = StandardScaler()
+        X_train = sc_X.fit_transform(X_train)
+        X_test = sc_X.transform(X_test)
+        sc_y = StandardScaler()
+        y_train = sc_y.fit_transform(y_train.reshape(-1, 1))
+
+        # Fitting Multiple Linear Regression to the Training set
+        regressor = LinearRegression()
+        regressor.fit(X_train, y_train)
+
+        # Predicting the Test set results
+        y_pred = regressor.predict(X_test)
+        print("X_train", X_train)
+        print("Y_train", y_train)
+        graph_url_train = plot(X_train, y_train, 'blue', 'red', regressor)
+        graph_url_test = plot(X_test, y_test, 'blue', 'red', regressor)
+
+        predictions_df = pd.concat([pd.DataFrame(X_test.to_numpy()), pd.DataFrame(y_pred)], axis=1)
+        response = {
+            'predict_result': predictions_df.to_numpy(),
+            'train_plot': f'data:image/png;base64,{graph_url_train}',
+            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e),
+        }
+    return response
+
+
+def linear_regression(df, x, y):
+    df = df.select_dtypes(include=['number'])
+    independant_value = df[[x]]
+    dependant_value = df[[y]]
+    response = {'predict_result': {}, 'error': False}
+    try:
+        X_train, X_test, Y_train, Y_test = train_test_split(independant_value, dependant_value, test_size=0.2)
+        regressor = LinearRegression()
+        regressor.fit(X_train, Y_train)
+
+        graph_url_train = plot(X_train, Y_train, 'blue', 'red', regressor, x, y, 'Train')
+        graph_url_test = plot(X_test, Y_test, 'blue', 'red', regressor, x, y, 'Test')
+
+        predictions_df = pd.concat([pd.DataFrame(X_test.to_numpy()), pd.DataFrame(regressor.predict(X_test))], axis=1)
+        response = {
+            'predict_result': predictions_df.to_numpy(),
+            'train_plot': f'data:image/png;base64,{graph_url_train}',
+            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e),
+        }
+    return response
+
+
+def plot(x, y, first_color, second_color, regressor, x_label=None, y_label=None, type=None):
+    plt.scatter(x, y, color=first_color)
+    plt.plot(x, regressor.predict(x), color=second_color)
+    if x_label != None and y_label != None and type != None:
+        plt.title(f'{x_label} vs {y_label} ({type} set)')
+        plt.xlabel(f'{x_label}')
+        plt.ylabel(f'{y_label}')
+    img = BytesIO()
+    plt.savefig(img, format="png")
+    img.seek(0)
+    graph_url = base64.b64encode(img.getvalue()).decode()
+    plt.clf()
+    return graph_url
+
+
+

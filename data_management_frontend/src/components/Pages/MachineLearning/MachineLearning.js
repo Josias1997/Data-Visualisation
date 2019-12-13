@@ -31,21 +31,26 @@ const MachineLearning = (props) => {
     const classes = useStyles();
     const [yValue, setYValue] = useState('');
     const [xValue, setXValue] = useState('');
+    const [algorithm, setAlgorithm] = useState('');
 
     useEffect(() => {
         if (props.fileId !== undefined) {
              const data = createJsonData(['id'], [props.fileId]);
             props.onSplitDataSet(data);
         }
-    }, [props.fileId])
+    }, [props.fileId]);
+
+    const handleAgorithmChange = (event) => {
+        setAlgorithm(event.target.value);
+    };
 
     const handleXChange = (event) => {
         setXValue(event.target.value);
-    }
+    };
 
     const handleYChange = (event) => {
         setYValue(event.target.value);
-    }
+    };
 
     const fit = () => {
         const data = createJsonData(['id', 'y'], [props.fileId, yValue]);
@@ -53,7 +58,7 @@ const MachineLearning = (props) => {
     };
 
     const predict = () => {
-        const data = createJsonData(['id', 'x', 'y'], [props.fileId, xValue, yValue]);
+        const data = createJsonData(['id', 'x', 'y', 'algorithm'], [props.fileId, xValue, yValue, algorithm]);
         props.onPredict(data);
     };
 
@@ -96,6 +101,18 @@ const MachineLearning = (props) => {
                             {
                                 props.data.columns.map(column => <MenuItem key={column.field} value={column.field}>{column.field}</MenuItem>)
                             }
+                        </Select>
+                    </FormControl>
+                    <FormControl className={classes.formControl}>
+                        <InputLabel id="dependantVariable">Algorithm</InputLabel>
+                        <Select
+                            labelId="dependantVariable"
+                            id="dependantVariable"
+                            value={algorithm}
+                            onChange={handleAgorithmChange}
+                            >
+                            <MenuItem value={'linear-regression'}>Linear Regression</MenuItem>
+                            <MenuItem value={'multiple-linear-regression'}>Multiple Linear Regression</MenuItem>
                         </Select>
                     </FormControl>
                 </div>

@@ -47,6 +47,7 @@ export const predict = (data) => {
 		dispatch(processingStart());
 		axios.post('/api/predict-data-set/', data)
 		.then(({data}) => {
+			console.log(data)
 			dispatch(predictSuccess(data));
 		}).catch(error => {
 			dispatch(processingFail(error.message));

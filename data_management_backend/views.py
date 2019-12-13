@@ -10,11 +10,9 @@ from pandasql import sqldf
 from django.conf import settings
 from decimal import Decimal
 from io import BytesIO
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
 from helpers.utils import (dataframe_from_file, 
     format_to_json, compute_stats, call_math_function, 
-    format_np_array, normalize_set)
+    format_np_array, normalize_set, multi_linear_regression, linear_regression)
 
 import matplotlib.pyplot as plt
 import base64
@@ -323,51 +321,17 @@ def fit(request):
 def predict(request):
     pk = request.data['id']
     file = get_object_or_404(File, id=pk)
-    df = dataframe_from_file(file.file).select_dtypes(include=['number'])
+    df = dataframe_from_file(file.file)
     y = request.data['y']
     x = request.data['x']
-    independant_value = df[[x]]
-    dependant_value = df[[y]]
+    algorithm = request.data['algorithm']
     response = {'predict_result': {}, 'error': False}
-    try:
-        X_train, X_test, Y_train, Y_test = train_test_split(independant_value, dependant_value, test_size=0.2)
-        regressor = LinearRegression()
-        regressor.fit(X_train, Y_train)
-
-        # Train Dataframe
-        plt.scatter(X_train.to_numpy(), Y_train.to_numpy(), color = 'blue')
-        plt.plot(X_train.to_numpy(), regressor.predict(X_train.to_numpy()), color="red")
-        plt.title('Salary vs Experience (Training set)')
-        plt.xlabel('Years of Experience')
-        plt.ylabel('Salary')
-        img = BytesIO()
-        plt.savefig(img, format="png")
-        img.seek(0)
-        graph_url_train = base64.b64encode(img.getvalue()).decode()
-
-        # Test Dataframe
-        plt.scatter(X_test.to_numpy(), Y_test.to_numpy(), color = 'blue')
-        plt.plot(X_test.to_numpy(), regressor.predict(X_test.to_numpy()), color="red")
-        plt.title('Salary vs Experience (Test set)')
-        plt.xlabel('Years of Experience')
-        plt.ylabel('Salary')
-        img = BytesIO()
-        plt.savefig(img, format="png")
-        img.seek(0)
-        graph_url_test = base64.b64encode(img.getvalue()).decode()
-        predictions_df = pd.concat([pd.DataFrame(X_test.to_numpy()), pd.DataFrame(regressor.predict(X_test))], axis=1)
-        response = {
-            'predict_result': predictions_df.to_numpy(),
-            'train_plot': f'data:image/png;base64,{graph_url_train}',
-            'test_plot': f'data:image/png;base64,{graph_url_test}',
-            'error': False,
-        }
-        plt.clf()
-    except Exception as e:
-        response = {
-            'error': str(e),
-        }
+    if algorithm == 'linear-regression':
+        response = linear_regression(df, x, y)
+    elif algorithm == 'multiple-linear-regression':
+        response = multi_linear_regression(df, x, y)
     return Response(response)
+
 
 
 

@@ -8,14 +8,12 @@ import ErrorBoundary from "../HOC/ErrorBoundary/ErrorBoundary";
 
 const Routes = props => {
     return (
-    	<ErrorBoundary>
-    		 <Switch>
-	            <Route exact path={"/"} component={DataManipulationPage} />
-	            <Route path={"/r-statistics"} component={RStatisticsPage}/>
-	            <Route path={"/modelisation"} component={ModelisationPage} />
-	            <Route path={"/machine-learning"} component={MachineLearning} />
-       	 	</Switch>
-    	</ErrorBoundary>
+		<Switch>
+            <Route exact path={"/"} component={DataManipulationPage} />
+            <Route path={"/r-statistics"} component={RStatisticsPage}/>
+            <Route path={"/modelisation"} component={ModelisationPage} />
+            <Route path={"/machine-learning"} component={MachineLearning} />
+   	 	</Switch>
     )
 }
 export default Routes;
