@@ -9,6 +9,10 @@ const initialState = {
 	predicted: false,
 	trainPlotPath: '',
 	testPlotPath: '',
+	seabornPlot: '',
+	marketingPlot: '',
+	rdSpendPlot: '',
+	adminPlot: '',
 }
 
 const processingStart = (state) => {
@@ -29,6 +33,10 @@ const predictSuccess = (state, action) => {
 		predictResult: action.data.predict_result,
 		trainPlotPath: action.data.train_plot,
 		testPlotPath: action.data.test_plot,
+		seabornPlot: action.data.seaborn_plot,
+		marketingPlot: action.data.marketing_plot,
+		rdSpendPlot: action.data.rd_spend_plot,
+		adminPlot: action.data.admin_plot,
 		loading: false,
 		predicted: true,
 	});

@@ -36,7 +36,7 @@ const MachineLearning = (props) => {
     useEffect(() => {
         if (props.fileId !== undefined) {
              const data = createJsonData(['id'], [props.fileId]);
-            props.onSplitDataSet(data);
+             props.onSplitDataSet(data);
         }
     }, [props.fileId]);
 
@@ -77,7 +77,9 @@ const MachineLearning = (props) => {
                     }}/>
                 </MDBCol>
                 <div className="container justify-content-center mt-5 mb-3">
-                    <FormControl className={classes.formControl}>
+                {
+                    algorithm === 'multiple-linear-regression' ? null : <>
+                        <FormControl className={classes.formControl}>
                         <InputLabel id="independantVariable">X</InputLabel>
                         <Select
                             labelId="independantVariable"
@@ -103,6 +105,8 @@ const MachineLearning = (props) => {
                             }
                         </Select>
                     </FormControl>
+                    </>
+                }
                     <FormControl className={classes.formControl}>
                         <InputLabel id="dependantVariable">Algorithm</InputLabel>
                         <Select
@@ -120,7 +124,9 @@ const MachineLearning = (props) => {
                 (props.processing ? <Spinner /> : <>
                      <div className="container col-md-12 justify-content-center mt-5 mb-3">
                     {
-                        props.predicted ? <> <table className="table table-stripped">
+                        props.predicted ? <> {
+                            algorithm === 'multiple-linear-regression' ? null : <>
+                            <table className="table table-stripped">
                         <thead>
                             <tr>
                                 <th>X_test</th>
@@ -135,13 +141,33 @@ const MachineLearning = (props) => {
                             </tr>) }
                         </tbody>
                         </table>
+                            </>
+                        } 
                         <div className="container row justify-content-center">
-                            <div className="col-md-12">
+
+                        {
+                            algorithm !== 'multiple-linear-regression' ?  <> <div className="col-md-12">
                                 <img src={props.trainPlotPath} alt="Train set plot"/>
                             </div>
                             <div className="col-md-12">
                                 <img src={props.testPlotPath} alt="Test set plot" />
+                            </div></> : <>
+                            <h2>Valeurs réelles vs Valeurs prévues</h2>
+                            <div className="col-md-12">
+                                <img src={props.seabornPlot} alt="Seaborn plot"/>
                             </div>
+                            <h2>Nuage de points</h2>
+                            <div className="col-md-12">
+                                <img src={props.adminPlot} alt="Admin plot"/>
+                            </div>
+                            <div className="col-md-12">
+                                <img src={props.marketingPlot} alt="Marketing plot" />
+                            </div>
+                            <div className="col-md-12">
+                                <img src={props.rdSpendPlot} alt="RD Spend plot"/>
+                            </div>
+                            </>
+                        }
                         </div>
                         </>
                         : null
@@ -209,8 +235,12 @@ const mapStateToProps = state => {
         testPlotPath: state.machine_learning.testPlotPath,
         xTest: state.machine_learning.xTest,
         splitProcessing: state.modelisation.processing,
+        seabornPlot: state.machine_learning.seabornPlot,
+        adminPlot: state.machine_learning.adminPlot,
+        rdSpendPlot: state.machine_learning.rdSpendPlot,
+        marketingPlot: state.machine_learning.marketingPlot,
 	}
-}
+};
 
 const mapDispatchToProps = dispatch => {
     return {
@@ -218,6 +248,6 @@ const mapDispatchToProps = dispatch => {
         onPredict: (data) => dispatch(predict(data)),
         onSplitDataSet: (data) => dispatch(splitDataSet(data)),
     }
-}
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(MachineLearning);

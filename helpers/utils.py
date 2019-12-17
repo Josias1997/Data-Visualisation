@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from io import BytesIO
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def dataframe_from_file(file):
@@ -183,48 +184,56 @@ def multi_linear_regression(df, x, y):
     response = {'predict_result': {}, 'error': False}
     try:
         # Multiple Linear Regression
-        X = df[[x]]
-        y = df[[y]]
+        X = df.iloc[:, :-1].values
+        y = df.iloc[:, 4].values
 
         # Encoding categorical data
         labelencoder = LabelEncoder()
-        X = labelencoder.fit_transform(X)
+        X[:, 3] = labelencoder.fit_transform(X[:, 3])
         onehotencoder = OneHotEncoder(categories='auto')
         X = onehotencoder.fit_transform(X).toarray()
 
         # Avoiding the Dummy Variable Trap
         X = X[:, 1:]
-
         # Splitting the dataset into the Training set and Test set
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
 
         # Feature Scaling
         sc_X = StandardScaler()
         X_train = sc_X.fit_transform(X_train)
-        X_test = sc_X.transform(X_test)
+        X_test = sc_X.transform(pd.DataFrame(X_test))
         sc_y = StandardScaler()
-        y_train = sc_y.fit_transform(y_train.reshape(-1, 1))
+
+        y_train = sc_y.fit_transform(pd.DataFrame(y_train))
 
         # Fitting Multiple Linear Regression to the Training set
         regressor = LinearRegression()
-        regressor.fit(X_train, y_train)
+        regressor.fit(pd.DataFrame(X_train), pd.DataFrame(y_train))
 
         # Predicting the Test set results
         y_pred = regressor.predict(X_test)
-        print("X_train", X_train)
-        print("Y_train", y_train)
-        graph_url_train = plot(X_train, y_train, 'blue', 'red', regressor)
-        graph_url_test = plot(X_test, y_test, 'blue', 'red', regressor)
-
-        predictions_df = pd.concat([pd.DataFrame(X_test.to_numpy()), pd.DataFrame(y_pred)], axis=1)
+        print("PLOT")
+        graph_url = seaborn_plot(y_train, y_pred)
+        administration = df[['Administration']]
+        rd_spend = df[['R&D Spend']]
+        marketing_spend = df[['Marketing Spend']]
+        state = df[['State']]
+        profit = df[['Profit']]
+        plot_admin = plot_scatter(administration, profit, 'blue', 'red', 'Administration', 'Profit', 'Administration & Profit')
+        plot_rd_spend = plot_scatter(rd_spend, profit, 'blue', 'red', 'R&D Spend', 'Profit', 'R&D Spend & Profit')
+        plot_marketing_spend = plot_scatter(marketing_spend, profit, 'blue', 'red', 'Marketing Spend', 'Profit', 'Marketing Spend & Profit')
+        # plot_state = plot_scatter(state, profit, 'blue', 'red', 'State', 'Profit', 'State & Profit')
         response = {
-            'predict_result': predictions_df.to_numpy(),
-            'train_plot': f'data:image/png;base64,{graph_url_train}',
-            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'predict_result': [],
+            'seaborn_plot': f'data:image/png;base64,{graph_url}',
+            'admin_plot': f'data:image/png;base64,{plot_admin}',
+            'rd_spend_plot': f'data:image/png;base64,{plot_rd_spend}',
+            'marketing_plot': f'data:image/png;base64,{plot_marketing_spend}',
             'error': False,
         }
     except Exception as e:
         response = {
+            'predict_result': [],
             'error': str(e),
         }
     return response
@@ -252,6 +261,7 @@ def linear_regression(df, x, y):
         }
     except Exception as e:
         response = {
+            'predict_result': [],
             'error': str(e),
         }
     return response
@@ -266,6 +276,30 @@ def plot(x, y, first_color, second_color, regressor, x_label=None, y_label=None,
         plt.ylabel(f'{y_label}')
     img = BytesIO()
     plt.savefig(img, format="png")
+    img.seek(0)
+    graph_url = base64.b64encode(img.getvalue()).decode()
+    plt.clf()
+    return graph_url
+
+def plot_scatter(x, y, first_color, second_color, x_label=None, y_label=None, type=None):
+    plt.scatter(x, y, color=first_color)
+    if x_label != None and y_label != None and type != None:
+        plt.title(f'{x_label} vs {y_label} ({type} set)')
+        plt.xlabel(f'{x_label}')
+        plt.ylabel(f'{y_label}')
+    img = BytesIO()
+    plt.savefig(img, format="png")
+    img.seek(0)
+    graph_url = base64.b64encode(img.getvalue()).decode()
+    plt.clf()
+    return graph_url
+
+def seaborn_plot(y1, y2):
+    ax1 = sns.distplot(y1, hist=False, color="r", label="valeurs réelles")
+    sns.distplot(y2, hist=False, color="b", label="valeurs prévues" , ax=ax1)
+    fig = ax1.get_figure()
+    img = BytesIO()
+    fig.savefig(img, format='png')
     img.seek(0)
     graph_url = base64.b64encode(img.getvalue()).decode()
     plt.clf()
