@@ -2,6 +2,8 @@
 Data Management 
 Django/React Data Visualisation app
 
+The app suports csv files, excel files, json files ...
+
 Installation : 
  - run pip install -r requirement.txt
  - run python manage.py migrate
