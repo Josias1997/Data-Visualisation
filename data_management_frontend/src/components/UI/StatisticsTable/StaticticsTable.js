@@ -1,7 +1,6 @@
 import React, {useState, useEffect, useRef} from "react";
 import Spinner from "../Spinner/Spinner";
 import { connect } from 'react-redux';
-import Pivot from '../../../webdatarocks.react';
 import Table from '../Table/Table';
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';

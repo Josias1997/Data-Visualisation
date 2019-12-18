@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
 	module: {
 		rules: [
@@ -13,7 +15,13 @@ module.exports = {
 				use: {
 					loader: 'css-loader',
 				}
-			}
+			},
+			{
+				test: /\.txt$/,
+				use: {
+					loader: 'file-loader',
+				}
+			},
 
 		]
 	},

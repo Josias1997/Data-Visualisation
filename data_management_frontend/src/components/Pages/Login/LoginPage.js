@@ -32,8 +32,8 @@ const LoginPage = props => {
 
     if (props.error) {
         errorMessage = <div className={"alert alert-danger mt-5"} role={"alert"}>
-            Nom d'utilisateur ou mot de passe incorrect.
-        </div>;
+             Nom d'utilisateur ou mot de passe incorrect.
+            </div>;
     }
     return (
         <MDBContainer>
