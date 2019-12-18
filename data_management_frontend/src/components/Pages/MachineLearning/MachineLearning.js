@@ -4,6 +4,7 @@ import {options, addRow, updateRow, deleteRow} from '../../../utility/settings';
 import { createJsonData } from '../../../utility/utility';
 import MaterialTable from "material-table";
 import AlignCenter from "../../UI/AlignCenter/AlignCenter";
+import Matrix from "../../UI/Matrix/Matrix";
 import Form from "../../UI/Form/Form";
 import Spinner from '../../UI/Spinner/Spinner';
 import Settings from "../../UI/Settings/Settings";
@@ -78,7 +79,7 @@ const MachineLearning = (props) => {
                 </MDBCol>
                 <div className="container justify-content-center mt-5 mb-3">
                 {
-                    algorithm === 'multiple-linear-regression' ? null : <>
+                    (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression') ? null : <>
                         <FormControl className={classes.formControl}>
                         <InputLabel id="independantVariable">X</InputLabel>
                         <Select
@@ -117,6 +118,7 @@ const MachineLearning = (props) => {
                             >
                             <MenuItem value={'linear-regression'}>Linear Regression</MenuItem>
                             <MenuItem value={'multiple-linear-regression'}>Multiple Linear Regression</MenuItem>
+                            <MenuItem value={'logistic-regression'}>Logistic Regression</MenuItem>
                         </Select>
                     </FormControl>
                 </div>
@@ -125,7 +127,7 @@ const MachineLearning = (props) => {
                      <div className="container col-md-12 justify-content-center mt-5 mb-3">
                     {
                         props.predicted ? <> {
-                            algorithm === 'multiple-linear-regression' ? null : <>
+                            (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression') ? null : <>
                             <table className="table table-stripped">
                         <thead>
                             <tr>
@@ -134,24 +136,63 @@ const MachineLearning = (props) => {
                             </tr>
                         </thead>
                         <tbody>
-                        {props.predictResult.map((arr, index) => <tr key={index}>
+                        { props.predictResult !== undefined ? props.predictResult.map((arr, index) => <tr key={index}>
                             {
                                 arr.map(value => <td key={$`{value} - {index}`}>{value}</td>)
                             }
-                            </tr>) }
+                            </tr>) : null }
                         </tbody>
                         </table>
                             </>
                         } 
+                        {
+                            algorithm === 'logistic-regression' ? <>
+                                <div className="container justify-content-center">
+                                    <h2>Confusion Matrix</h2>
+                                        <Matrix matrix={props.confusionMatrix} />
+                                </div>
+                            </> : null
+                        }
                         <div className="container row justify-content-center">
+                        {
+                            algorithm === 'logistic-regression' ? <>
+                                <div className="col-md-12">
+                                    <h3>Confusion Matrix Plot</h3><br />
+                                    <img src={props.matrixPlot} alt="Confusion Matrix"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <h3>Classification report</h3><br />
+                                    <span style={{
+                                        whiteSpace: 'pre-wrap',
+                                        fontWeight: 'bold'
+                                    }}>{props.report}</span>
+                                </div>
+                                <div className="col-md-12 justify-content-center">
+                                    <h3>Courbe ROC</h3>
+                                    <img src={props.courbeRoc} alt="Confusion Matrix"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <h3>Score ROC : {props.scoreRoc}</h3>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.trainPlotPath} alt="Train set plot"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.testPlotPath} alt="Test set plot" />
+                                </div>
+                            </> : null
+                        }
 
                         {
-                            algorithm !== 'multiple-linear-regression' ?  <> <div className="col-md-12">
+                            algorithm === 'linear-regression' ?  <> <div className="col-md-12">
                                 <img src={props.trainPlotPath} alt="Train set plot"/>
                             </div>
                             <div className="col-md-12">
                                 <img src={props.testPlotPath} alt="Test set plot" />
-                            </div></> : <>
+                            </div></> : null
+                        }
+                        {
+                            algorithm === 'multiple-linear-regression' ? <>
                             <h2>Valeurs réelles vs Valeurs prévues</h2>
                             <div className="col-md-12">
                                 <img src={props.seabornPlot} alt="Seaborn plot"/>
@@ -166,7 +207,7 @@ const MachineLearning = (props) => {
                             <div className="col-md-12">
                                 <img src={props.rdSpendPlot} alt="RD Spend plot"/>
                             </div>
-                            </>
+                            </> : null
                         }
                         </div>
                         </>
@@ -239,6 +280,11 @@ const mapStateToProps = state => {
         adminPlot: state.machine_learning.adminPlot,
         rdSpendPlot: state.machine_learning.rdSpendPlot,
         marketingPlot: state.machine_learning.marketingPlot,
+        confusionMatrix: state.machine_learning.confusionMatrix,
+        matrixPlot: state.machine_learning.matrixPlot,
+        report: state.machine_learning.report,
+        courbeRoc: state.machine_learning.courbeRoc,
+        scoreRoc: state.machine_learning.scoreRoc,
 	}
 };
 

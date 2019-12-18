@@ -13,6 +13,11 @@ const initialState = {
 	marketingPlot: '',
 	rdSpendPlot: '',
 	adminPlot: '',
+	confusionMatrix: [],
+	matrixPlot: '',
+	report: '',
+	courbeRoc: '',
+	scoreRoc: '',
 }
 
 const processingStart = (state) => {
@@ -37,6 +42,11 @@ const predictSuccess = (state, action) => {
 		marketingPlot: action.data.marketing_plot,
 		rdSpendPlot: action.data.rd_spend_plot,
 		adminPlot: action.data.admin_plot,
+		confusionMatrix: action.data.confusion_matrix,
+		matrixPlot: action.data.matrix_plot,
+		report: action.data.report,
+		courbeRoc: action.data.courbe_roc,
+		scoreRoc: action.data.score_roc,
 		loading: false,
 		predicted: true,
 	});

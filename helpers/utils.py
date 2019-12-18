@@ -7,12 +7,14 @@ import base64
 import scipy.stats as st
 import numpy as np
 from sklearn import preprocessing
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, roc_auc_score
 from sklearn.preprocessing import (LabelEncoder, OneHotEncoder, StandardScaler, 
     RobustScaler, MinMaxScaler, Normalizer)
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from io import BytesIO
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 import seaborn as sns
 
 
@@ -180,7 +182,7 @@ def normalize_set(df, function):
         return Normalizer().fit_transform(df)
 
 
-def multi_linear_regression(df, x, y):
+def multi_linear_regression(df):
     response = {'predict_result': {}, 'error': False}
     try:
         # Multiple Linear Regression
@@ -239,11 +241,134 @@ def multi_linear_regression(df, x, y):
     return response
 
 
+def logistic_regression(df):
+    X = df.iloc[:, [2, 3]].values
+    y = df.iloc[:, 4].values
+    response = {'error': False}
+    try:
+
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+
+        # Feature Scaling
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+
+        # Fitting classifier to the Training set
+        # Create your classifier here
+        classifier = LogisticRegression(random_state = 0)
+        classifier.fit(X_train, y_train)
+
+        # Predicting the Test set results
+        y_pred = classifier.predict(X_test)
+
+        # Making the Confusion Matrix
+        cm = confusion_matrix(y_test, y_pred)
+        plt.matshow(cm)
+        plt.title('Confusion matrix')
+        plt.colorbar()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+        img = BytesIO()
+        plt.savefig(img, format="png")
+        img.seek(0)
+        matrix_plot = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
+
+        # Classificatin report
+        report = classification_report(y_test, y_pred)
+        print(report)
+
+        # Probabilité des prédictions
+        prob_pred = classifier.predict_proba(X_train)
+        y_score = prob_pred[:,1]
+
+        # Tracer la courbe ROC
+
+        faux_positive, vrai_positive, seuils = roc_curve(y_train, y_score)
+        plt.figure(figsize=(11, 8))
+        courbe_roc_func(faux_positive, vrai_positive)
+        img = BytesIO()
+        plt.savefig(img, format="png")
+        img.seek(0)
+        courbe_roc = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
+        score_roc = roc_auc_score(y_train, y_score)
+        score_roc = score_roc * 100
+
+
+
+        # Visualising the Training set results
+        X_set, y_set = X_train, y_train
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('red', 'green')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('red', 'green'))(i), label = j)
+        plt.title('Classifier (Training set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        img = BytesIO()
+        plt.savefig(img, format="png")
+        img.seek(0)
+        graph_url_train = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
+
+        # Visualising the Test set results
+        X_set, y_set = X_test, y_test
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('red', 'green')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('red', 'green'))(i), label = j)
+        plt.title('Classifier (Test set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        img = BytesIO()
+        plt.savefig(img, format="png")
+        img.seek(0)
+        graph_url_test = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
+        response = {
+            'matrix_plot': f'data:image/png;base64,{matrix_plot}',
+            'report': report,
+            'courbe_roc': f'data:image/png;base64,{courbe_roc}',
+            'score_roc': score_roc,
+            'train_plot': f'data:image/png;base64,{graph_url_train}',
+            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'confusion_matrix': cm,
+            'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e),
+        }
+    return response
+
+def courbe_roc_func(faux_positive, vrai_positive, label=None):
+    plt.plot(faux_positive, vrai_positive, linewidth=2, label=label)
+    plt.plot([0, 1], [0, 1], 'r', linewidth=4)
+    plt.axis([0, 1, 0, 1])
+    plt.xlabel('faux positif', fontsize=18)
+    plt.ylabel('vrai positif', fontsize=18)
+
+
 def linear_regression(df, x, y):
     df = df.select_dtypes(include=['number'])
     independant_value = df[[x]]
     dependant_value = df[[y]]
-    response = {'predict_result': {}, 'error': False}
+    response = {'predict_result': [], 'error': False}
     try:
         X_train, X_test, Y_train, Y_test = train_test_split(independant_value, dependant_value, test_size=0.2)
         regressor = LinearRegression()
@@ -268,6 +393,7 @@ def linear_regression(df, x, y):
 
 
 def plot(x, y, first_color, second_color, regressor, x_label=None, y_label=None, type=None):
+    plt.figure(figsize=(11, 8))
     plt.scatter(x, y, color=first_color)
     plt.plot(x, regressor.predict(x), color=second_color)
     if x_label != None and y_label != None and type != None:
@@ -282,6 +408,7 @@ def plot(x, y, first_color, second_color, regressor, x_label=None, y_label=None,
     return graph_url
 
 def plot_scatter(x, y, first_color, second_color, x_label=None, y_label=None, type=None):
+    plt.figure(figsize=(11, 8))
     plt.scatter(x, y, color=first_color)
     if x_label != None and y_label != None and type != None:
         plt.title(f'{x_label} vs {y_label} ({type} set)')

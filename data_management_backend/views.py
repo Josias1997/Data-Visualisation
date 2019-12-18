@@ -12,8 +12,9 @@ from decimal import Decimal
 from io import BytesIO
 from helpers.utils import (dataframe_from_file, 
     format_to_json, compute_stats, call_math_function, 
-    format_np_array, normalize_set, multi_linear_regression, linear_regression)
-
+    format_np_array, normalize_set, 
+    multi_linear_regression, linear_regression, logistic_regression)
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import base64
 import scipy.stats
@@ -192,6 +193,7 @@ def plot(request):
     df = dataframe_from_file(file.file)
     try:
         df.plot(kind=kind, x=x, y=columns)
+        plt.figure(figsize=(11, 8))
         img = BytesIO()
         plt.savefig(img, format="png")
         img.seek(0)
@@ -325,11 +327,13 @@ def predict(request):
     y = request.data['y']
     x = request.data['x']
     algorithm = request.data['algorithm']
-    response = {'predict_result': {}, 'error': False}
+    response = {'predict_result': [], 'error': False}
     if algorithm == 'linear-regression':
         response = linear_regression(df, x, y)
     elif algorithm == 'multiple-linear-regression':
-        response = multi_linear_regression(df, x, y)
+        response = multi_linear_regression(df)
+    elif algorithm == 'logistic-regression':
+        response = logistic_regression(df)
     return Response(response)
 
 

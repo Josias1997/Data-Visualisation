@@ -39,6 +39,9 @@ const LoginPage = props => {
         <MDBContainer>
             <Grid>
                 {errorMessage}
+                <div className="alert alert-info mt-3">
+                    <span>Username: <strong>admin</strong> Password: <strong>admin</strong></span>
+                </div>
             </Grid>
             {
                 (!props.isAuthenticated && props.loading) ? <Grid><Spinner/></Grid> : <Grid>
