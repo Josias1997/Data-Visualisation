@@ -4,7 +4,6 @@ import DataManipulationPage from '../Pages/DataManipulation/DataManipulationPage
 import RStatisticsPage from '../Pages/RStatistics/RStatisticsPage';
 import ModelisationPage from '../Pages/Modelisation/ModelisationPage';
 import MachineLearning from '../Pages/MachineLearning/MachineLearning';
-import ErrorBoundary from "../HOC/ErrorBoundary/ErrorBoundary";
 
 const Routes = props => {
     return (
