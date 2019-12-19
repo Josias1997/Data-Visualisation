@@ -8,6 +8,7 @@ import scipy.stats as st
 import numpy as np
 from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, roc_auc_score
+from sklearn.svm import SVR
 from sklearn.preprocessing import (LabelEncoder, OneHotEncoder, StandardScaler, 
     RobustScaler, MinMaxScaler, Normalizer)
 from sklearn.model_selection import train_test_split
@@ -362,6 +363,65 @@ def courbe_roc_func(faux_positive, vrai_positive, label=None):
     plt.axis([0, 1, 0, 1])
     plt.xlabel('faux positif', fontsize=18)
     plt.ylabel('vrai positif', fontsize=18)
+
+
+def svr(df):
+    X = df.iloc[:, 1:2].values
+    y = df.iloc[:, 2].values
+
+    # Splitting the dataset into the Training set and Test set
+    """from sklearn.cross_validation import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)"""
+    response = {'error': False}
+    try:
+        # Feature Scaling
+        sc_X = StandardScaler()
+        sc_y = StandardScaler()
+        X = sc_X.fit_transform(X)
+        y = sc_y.fit_transform([y])
+
+        regressor = SVR(kernel = 'rbf')
+        regressor.fit(X, y.ravel())
+
+        # Predicting a new result
+        y_pred = regressor.predict(X)
+        y_pred = sc_y.inverse_transform(y_pred)
+
+        # Visualising the SVR results
+        plt.scatter(X, y, color = 'red')
+        plt.plot(X, regressor.predict(X), color = 'blue')
+        plt.title('Truth or Bluff (SVR)')
+        plt.xlabel('Position level')
+        plt.ylabel('Salary')
+        img = BytesIO()
+        plt.savefig(img, format="png")
+        img.seek(0)
+        svr_results = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
+
+        # Visualising the SVR results (for higher resolution and smoother curve)
+        X_grid = np.arange(min(X), max(X), 0.01) # choice of 0.01 instead of 0.1 step because the data is feature scaled
+        X_grid = X_grid.reshape((len(X_grid), 1))
+        plt.scatter(X, y, color = 'red')
+        plt.plot(X_grid, regressor.predict(X_grid), color = 'blue')
+        plt.title('Truth or Bluff (SVR)')
+        plt.xlabel('Position level')
+        plt.ylabel('Salary')
+        img = BytesIO()
+        plt.savefig(img, format="png")
+        img.seek(0)
+        svr_results_hr = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
+        response = {
+            'svr_results': f'data:image/png;base64,{svr_results}',
+            'svr_results_hr': f'data:image/png;base64,{svr_results_hr}',
+            'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
 
 
 def linear_regression(df, x, y):

@@ -79,7 +79,7 @@ const MachineLearning = (props) => {
                 </MDBCol>
                 <div className="container justify-content-center mt-5 mb-3">
                 {
-                    (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression') ? null : <>
+                    (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr') ? null : <>
                         <FormControl className={classes.formControl}>
                         <InputLabel id="independantVariable">X</InputLabel>
                         <Select
@@ -119,6 +119,7 @@ const MachineLearning = (props) => {
                             <MenuItem value={'linear-regression'}>Linear Regression</MenuItem>
                             <MenuItem value={'multiple-linear-regression'}>Multiple Linear Regression</MenuItem>
                             <MenuItem value={'logistic-regression'}>Logistic Regression</MenuItem>
+                            <MenuItem value={'svr'}>SVR</MenuItem>
                         </Select>
                     </FormControl>
                 </div>
@@ -127,7 +128,7 @@ const MachineLearning = (props) => {
                      <div className="container col-md-12 justify-content-center mt-5 mb-3">
                     {
                         props.predicted ? <> {
-                            (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression') ? null : <>
+                            (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr') ? null : <>
                             <table className="table table-stripped">
                         <thead>
                             <tr>
@@ -145,30 +146,42 @@ const MachineLearning = (props) => {
                         </table>
                             </>
                         } 
+
+                        <div className="container" style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
                         {
-                            algorithm === 'logistic-regression' ? <>
-                                <div className="container justify-content-center">
-                                    <h2>Confusion Matrix</h2>
-                                        <Matrix matrix={props.confusionMatrix} />
+                            algorithm === 'svr' ? <>
+                                 <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.svrResults} alt="SVR Results"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.svrResultsHR} alt="SVR Results with higher resolution" />
                                 </div>
                             </> : null
                         }
-                        <div className="container row justify-content-center">
                         {
                             algorithm === 'logistic-regression' ? <>
-                                <div className="col-md-12">
-                                    <h3>Confusion Matrix Plot</h3><br />
+                                <h3>Confusion Matrix</h3>
+                                <div className=" mt-2 container justify-content-center">
+                                    <Matrix matrix={props.confusionMatrix} />
+                                </div>
+                                <h3 className="mt-3">Confusion Matrix Plot</h3><br />
+                                <div className="col-md-12 d-flex justify-content-center">
                                     <img src={props.matrixPlot} alt="Confusion Matrix"/>
                                 </div>
-                                <div className="col-md-12">
-                                    <h3>Classification report</h3><br />
+                                <h3 className="mt-3">Classification report</h3>
+                                <div className="col-md-12 d-flex justify-content-center">
                                     <span style={{
                                         whiteSpace: 'pre-wrap',
                                         fontWeight: 'bold'
                                     }}>{props.report}</span>
                                 </div>
-                                <div className="col-md-12 justify-content-center">
-                                    <h3>Courbe ROC</h3>
+                                <h3 className="mt-5">Courbe ROC</h3>
+                                <div className="col-md-12">
                                     <img src={props.courbeRoc} alt="Confusion Matrix"/>
                                 </div>
                                 <div className="col-md-12 d-flex justify-content-center">
@@ -285,6 +298,8 @@ const mapStateToProps = state => {
         report: state.machine_learning.report,
         courbeRoc: state.machine_learning.courbeRoc,
         scoreRoc: state.machine_learning.scoreRoc,
+        svrResults: state.machine_learning.svrResults,
+        svrResultsHR: state.machine_learning.svrResultsHR,
 	}
 };
 

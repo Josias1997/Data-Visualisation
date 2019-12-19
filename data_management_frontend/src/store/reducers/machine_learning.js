@@ -18,6 +18,8 @@ const initialState = {
 	report: '',
 	courbeRoc: '',
 	scoreRoc: '',
+	svrResults: '',
+	svrResultsHR: '',
 }
 
 const processingStart = (state) => {
@@ -47,6 +49,8 @@ const predictSuccess = (state, action) => {
 		report: action.data.report,
 		courbeRoc: action.data.courbe_roc,
 		scoreRoc: action.data.score_roc,
+		svrResults: action.data.svr_results,
+		svrResultsHR: action.data.svr_results_hr,
 		loading: false,
 		predicted: true,
 	});

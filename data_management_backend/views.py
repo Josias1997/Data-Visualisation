@@ -13,7 +13,7 @@ from io import BytesIO
 from helpers.utils import (dataframe_from_file, 
     format_to_json, compute_stats, call_math_function, 
     format_np_array, normalize_set, 
-    multi_linear_regression, linear_regression, logistic_regression)
+    multi_linear_regression, linear_regression, logistic_regression, svr)
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import base64
@@ -334,6 +334,8 @@ def predict(request):
         response = multi_linear_regression(df)
     elif algorithm == 'logistic-regression':
         response = logistic_regression(df)
+    elif algorithm == 'svr':
+        response = svr(df)
     return Response(response)
 
 
