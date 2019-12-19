@@ -20,6 +20,8 @@ const initialState = {
 	scoreRoc: '',
 	svrResults: '',
 	svrResultsHR: '',
+	decisionTreeGraphImg: '',
+	randomForestRegressionGraph: '',
 }
 
 const processingStart = (state) => {
@@ -51,6 +53,8 @@ const predictSuccess = (state, action) => {
 		scoreRoc: action.data.score_roc,
 		svrResults: action.data.svr_results,
 		svrResultsHR: action.data.svr_results_hr,
+		decisionTreeGraphImg: action.data.decision_tree_graph_img,
+		randomForestRegressionGraph: action.data.rdm_forest_regression_graph,
 		loading: false,
 		predicted: true,
 	});

@@ -9,6 +9,8 @@ import numpy as np
 from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, roc_auc_score
 from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import (LabelEncoder, OneHotEncoder, StandardScaler, 
     RobustScaler, MinMaxScaler, Normalizer)
 from sklearn.model_selection import train_test_split
@@ -215,7 +217,6 @@ def multi_linear_regression(df):
 
         # Predicting the Test set results
         y_pred = regressor.predict(X_test)
-        print("PLOT")
         graph_url = seaborn_plot(y_train, y_pred)
         administration = df[['Administration']]
         rd_spend = df[['R&D Spend']]
@@ -369,11 +370,10 @@ def svr(df):
     X = df.iloc[:, 1:2].values
     y = df.iloc[:, 2].values
 
-    # Splitting the dataset into the Training set and Test set
-    """from sklearn.cross_validation import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)"""
     response = {'error': False}
     try:
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
         # Feature Scaling
         sc_X = StandardScaler()
         sc_y = StandardScaler()
@@ -393,11 +393,7 @@ def svr(df):
         plt.title('Truth or Bluff (SVR)')
         plt.xlabel('Position level')
         plt.ylabel('Salary')
-        img = BytesIO()
-        plt.savefig(img, format="png")
-        img.seek(0)
-        svr_results = base64.b64encode(img.getvalue()).decode()
-        plt.clf()
+        svr_results = generate_graph_img(plt)
 
         # Visualising the SVR results (for higher resolution and smoother curve)
         X_grid = np.arange(min(X), max(X), 0.01) # choice of 0.01 instead of 0.1 step because the data is feature scaled
@@ -407,15 +403,75 @@ def svr(df):
         plt.title('Truth or Bluff (SVR)')
         plt.xlabel('Position level')
         plt.ylabel('Salary')
-        img = BytesIO()
-        plt.savefig(img, format="png")
-        img.seek(0)
-        svr_results_hr = base64.b64encode(img.getvalue()).decode()
-        plt.clf()
+        svr_results_hr = generate_graph_img(plt)
         response = {
             'svr_results': f'data:image/png;base64,{svr_results}',
             'svr_results_hr': f'data:image/png;base64,{svr_results_hr}',
             'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
+
+def decision_tree_regressor(df):
+    X = df.iloc[:, 1:2].values
+    y = df.iloc[:, 2].values
+
+    response = {'error': False}
+    try:
+        # Fitting Decision Tree Regression to the dataset
+        regressor = DecisionTreeRegressor(random_state = 0)
+        regressor.fit(X, y)
+
+        # Predicting a new result
+        y_pred = regressor.predict(X)
+
+        # Visualising the Decision Tree Regression results (higher resolution)
+        X_grid = np.arange(min(X), max(X), 0.01)
+        X_grid = X_grid.reshape((len(X_grid), 1))
+        plt.scatter(X, y, color = 'red')
+        plt.plot(X_grid, regressor.predict(X_grid), color = 'blue')
+        plt.title('Truth or Bluff (Decision Tree Regression)')
+        plt.xlabel('Position level')
+        plt.ylabel('Salary')
+        decision_tree_graph_img = generate_graph_img(plt) 
+        response = {
+            'decision_tree_graph_img': f'data:image/png;base64,{decision_tree_graph_img}',
+            'error': False
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
+
+def random_forest_regression(df):
+    X = df.iloc[:, 1:2].values
+    y = df.iloc[:, 2].values
+
+    response = {'error': False}
+    try:
+        # Fitting Random Forest Regression to the dataset
+        regressor = RandomForestRegressor(n_estimators = 10, random_state = 0)
+        regressor.fit(X, y)
+
+        # Predicting a new result
+        y_pred = regressor.predict(X)
+
+        # Visualising the Random Forest Regression results (higher resolution)
+        X_grid = np.arange(min(X), max(X), 0.01)
+        X_grid = X_grid.reshape((len(X_grid), 1))
+        plt.scatter(X, y, color = 'red')
+        plt.plot(X_grid, regressor.predict(X_grid), color = 'blue')
+        plt.title('Truth or Bluff (Random Forest Regression)')
+        plt.xlabel('Position level')
+        plt.ylabel('Salary')
+        rdm_forest_regression_graph = generate_graph_img(plt)
+        response = {
+            'rdm_forest_regression_graph': f'data:image/png;base64,{rdm_forest_regression_graph}',
+            'error': False
         }
     except Exception as e:
         response = {
@@ -460,11 +516,7 @@ def plot(x, y, first_color, second_color, regressor, x_label=None, y_label=None,
         plt.title(f'{x_label} vs {y_label} ({type} set)')
         plt.xlabel(f'{x_label}')
         plt.ylabel(f'{y_label}')
-    img = BytesIO()
-    plt.savefig(img, format="png")
-    img.seek(0)
-    graph_url = base64.b64encode(img.getvalue()).decode()
-    plt.clf()
+    graph_url = generate_graph_img(plt)
     return graph_url
 
 def plot_scatter(x, y, first_color, second_color, x_label=None, y_label=None, type=None):
@@ -474,11 +526,7 @@ def plot_scatter(x, y, first_color, second_color, x_label=None, y_label=None, ty
         plt.title(f'{x_label} vs {y_label} ({type} set)')
         plt.xlabel(f'{x_label}')
         plt.ylabel(f'{y_label}')
-    img = BytesIO()
-    plt.savefig(img, format="png")
-    img.seek(0)
-    graph_url = base64.b64encode(img.getvalue()).decode()
-    plt.clf()
+    graph_url = generate_graph_img(plt)
     return graph_url
 
 def seaborn_plot(y1, y2):
@@ -491,6 +539,15 @@ def seaborn_plot(y1, y2):
     graph_url = base64.b64encode(img.getvalue()).decode()
     plt.clf()
     return graph_url
+
+
+def generate_graph_img(plot):
+    img = BytesIO()
+    plot.savefig(img, format="png")
+    img.seek(0)
+    graph_img = base64.b64encode(img.getvalue()).decode()
+    plot.clf()
+    return graph_img
 
 
 

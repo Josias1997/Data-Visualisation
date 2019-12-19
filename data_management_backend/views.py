@@ -12,7 +12,7 @@ from decimal import Decimal
 from io import BytesIO
 from helpers.utils import (dataframe_from_file, 
     format_to_json, compute_stats, call_math_function, 
-    format_np_array, normalize_set, 
+    format_np_array, normalize_set, decision_tree_regressor, random_forest_regression,
     multi_linear_regression, linear_regression, logistic_regression, svr)
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
@@ -336,6 +336,10 @@ def predict(request):
         response = logistic_regression(df)
     elif algorithm == 'svr':
         response = svr(df)
+    elif algorithm == 'decision-tree-regressor':
+        response = decision_tree_regressor(df)
+    elif algorithm == 'random-forest-regression':
+        response = random_forest_regression(df)
     return Response(response)
 
 

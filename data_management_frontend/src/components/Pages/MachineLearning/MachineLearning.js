@@ -79,7 +79,8 @@ const MachineLearning = (props) => {
                 </MDBCol>
                 <div className="container justify-content-center mt-5 mb-3">
                 {
-                    (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr') ? null : <>
+                    (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr'
+                    || algorithm === 'decision-tree-regressor' || algorithm === 'random-forest-regression') ? null : <>
                         <FormControl className={classes.formControl}>
                         <InputLabel id="independantVariable">X</InputLabel>
                         <Select
@@ -120,6 +121,8 @@ const MachineLearning = (props) => {
                             <MenuItem value={'multiple-linear-regression'}>Multiple Linear Regression</MenuItem>
                             <MenuItem value={'logistic-regression'}>Logistic Regression</MenuItem>
                             <MenuItem value={'svr'}>SVR</MenuItem>
+                            <MenuItem value={'decision-tree-regressor'}>Decsion Tree Regressor</MenuItem>
+                            <MenuItem value={'random-forest-regression'}>Random Forest Regression</MenuItem>
                         </Select>
                     </FormControl>
                 </div>
@@ -128,7 +131,8 @@ const MachineLearning = (props) => {
                      <div className="container col-md-12 justify-content-center mt-5 mb-3">
                     {
                         props.predicted ? <> {
-                            (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr') ? null : <>
+                            (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr'
+                                 || algorithm === 'decision-tree-regressor' || algorithm === 'random-forest-regression') ? null : <>
                             <table className="table table-stripped">
                         <thead>
                             <tr>
@@ -154,6 +158,20 @@ const MachineLearning = (props) => {
                             justifyContent: 'center',
                         }}>
                         {
+                            algorithm === 'random-forest-regression' ? <>
+                                 <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.randomForestRegressionGraph} alt="Random Forest Graph"/>
+                                </div>
+                            </> : null
+                        }
+                        {
+                            algorithm === 'decision-tree-regressor' ? <>
+                                 <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.decisionTreeGraphImg} alt="Decision Tree Graph"/>
+                                </div>
+                            </> : null
+                        }
+                        {
                             algorithm === 'svr' ? <>
                                  <div className="col-md-12 d-flex justify-content-center">
                                     <img src={props.svrResults} alt="SVR Results"/>
@@ -167,7 +185,7 @@ const MachineLearning = (props) => {
                             algorithm === 'logistic-regression' ? <>
                                 <h3>Confusion Matrix</h3>
                                 <div className=" mt-2 container justify-content-center">
-                                    <Matrix matrix={props.confusionMatrix} />
+                                    {props.confusionMatrix !== undefined ? <Matrix matrix={props.confusionMatrix} /> : null}
                                 </div>
                                 <h3 className="mt-3">Confusion Matrix Plot</h3><br />
                                 <div className="col-md-12 d-flex justify-content-center">
@@ -300,6 +318,8 @@ const mapStateToProps = state => {
         scoreRoc: state.machine_learning.scoreRoc,
         svrResults: state.machine_learning.svrResults,
         svrResultsHR: state.machine_learning.svrResultsHR,
+        decisionTreeGraphImg: state.machine_learning.decisionTreeGraphImg,
+        randomForestRegressionGraph: state.machine_learning.randomForestRegressionGraph,
 	}
 };
 
