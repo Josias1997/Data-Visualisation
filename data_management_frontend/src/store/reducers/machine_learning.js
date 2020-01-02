@@ -22,6 +22,14 @@ const initialState = {
 	svrResultsHR: '',
 	decisionTreeGraphImg: '',
 	randomForestRegressionGraph: '',
+	clusters: '',
+	elbowGraph: '',
+	dendrogramGraph: '',
+	supportConfidence: '',
+	supportLift: '',
+	liftConfidence: '',
+	histogram: '',
+
 }
 
 const processingStart = (state) => {
@@ -55,6 +63,13 @@ const predictSuccess = (state, action) => {
 		svrResultsHR: action.data.svr_results_hr,
 		decisionTreeGraphImg: action.data.decision_tree_graph_img,
 		randomForestRegressionGraph: action.data.rdm_forest_regression_graph,
+		clusters: action.data.clusters,
+		elbowGraph: action.data.elbow_graph,
+		dendrogramGraph: action.data.dendrogram,
+		supportConfidence: action.data.support_confidence,
+		supportLift: action.data.support_lift,
+		liftConfidence: action.data.lift_confidence,
+		histogram: action.data.histogram,
 		loading: false,
 		predicted: true,
 	});

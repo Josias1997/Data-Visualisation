@@ -9,6 +9,10 @@ const MachineLearningSettings = props => {
 				<MDBIcon icon="brain" className="mr-2" />
 				Predict
 			</MDBBtn>
+			<MDBBtn onClick = {() => props.onSplit()}>
+				<MDBIcon icon="pen-nib" className="mr-2" />
+				Split Data Set
+			</MDBBtn>
 		</div>
 	)
 };

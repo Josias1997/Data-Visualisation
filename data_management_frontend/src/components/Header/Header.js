@@ -39,6 +39,10 @@ const Header = props => {
                             <MDBNavLink to={"/deep-learning"}>Deep Learning</MDBNavLink>
                         </MDBNavItem>
                         <MDBNavItem>
+                            <MDBNavLink to={"/text-mining"}>Text Mining</MDBNavLink>
+                        </MDBNavItem>
+
+                        <MDBNavItem>
                             <MDBNavLink to={"/dashboard"}>Dashboard</MDBNavLink>
                         </MDBNavItem>
                     </MDBNavbarNav>

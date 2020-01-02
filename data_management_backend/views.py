@@ -13,13 +13,15 @@ from io import BytesIO
 from helpers.utils import (dataframe_from_file, 
     format_to_json, compute_stats, call_math_function, 
     format_np_array, normalize_set, decision_tree_regressor, random_forest_regression,
-    multi_linear_regression, linear_regression, logistic_regression, svr)
+    multi_linear_regression, linear_regression, logistic_regression, lda, pca, kpca,
+    svr, k_nearest_neighbors, support_vector_machine, classification, k_means_cluster, hierarchical_cluster)
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import base64
 import scipy.stats
 import pandas as pd
 import os
+from helpers.deep_learning import my_func, thompson_sampling, upper_confidence_bound, artificial_neural_network
 
 
 # Create your views here.
@@ -193,11 +195,11 @@ def plot(request):
     df = dataframe_from_file(file.file)
     try:
         df.plot(kind=kind, x=x, y=columns)
-        plt.figure(figsize=(11, 8))
         img = BytesIO()
         plt.savefig(img, format="png")
         img.seek(0)
         graph_url = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
         return Response({
             'plot': f'data:image/png;base64,{graph_url}',
             'error': False
@@ -340,6 +342,38 @@ def predict(request):
         response = decision_tree_regressor(df)
     elif algorithm == 'random-forest-regression':
         response = random_forest_regression(df)
+    elif algorithm == 'k-nearest-neighbors':
+        response = k_nearest_neighbors(df)
+    elif algorithm == 'svc':
+        response = support_vector_machine(df, 'linear')
+    elif algorithm == 'k-svc':
+        response = support_vector_machine(df, 'rbf')
+    elif algorithm == 'decision-tree-classification':
+        response = classification(df, 'decision-tree', 'Decision Tree Classification')
+    elif algorithm == 'naives-bayes':
+        response = classification(df, 'naives-bayes', 'Naive Bayes')
+    elif algorithm == 'random-forest-classification':
+        response = classification(df, 'random-forest', 'Random Forest Classification')
+    elif algorithm == 'k-means-cluster':
+        response = k_means_cluster(df)
+    elif algorithm == 'hierarchical-cluster':
+        response = hierarchical_cluster(df)
+    elif algorithm == 'lda':
+        response = lda(df)
+    elif algorithm == 'pca':
+        response = pca(df)
+    elif algorithm == 'kpca':
+        response = kpca(df)
+    elif algorithm == 'fp-growth':
+        response = my_func(df, 'fp-growth')
+    elif algorithm == 'apriori':
+        response = my_func(df, 'apriori')
+    elif algorithm == 'thompson-sampling':
+        response = thompson_sampling(df)
+    elif algorithm == 'upper-confidence-bound':
+        response = upper_confidence_bound(df)
+    elif algorithm == 'artificial-neural-network':
+        response = artificial_neural_network(df)
     return Response(response)
 
 

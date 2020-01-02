@@ -5,12 +5,19 @@ from tabula import read_pdf
 import os
 import base64
 import scipy.stats as st
+import scipy.cluster.hierarchy as sch
 import numpy as np
 from sklearn import preprocessing
-from sklearn.metrics import confusion_matrix, classification_report, roc_curve, roc_auc_score
-from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.decomposition import PCA, KernelPCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.metrics import (confusion_matrix, classification_report, roc_curve, roc_auc_score, adjusted_rand_score,
+    homogeneity_score, v_measure_score)
+from sklearn.svm import SVR, SVC
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import (LabelEncoder, OneHotEncoder, StandardScaler, 
     RobustScaler, MinMaxScaler, Normalizer)
 from sklearn.model_selection import train_test_split
@@ -25,7 +32,7 @@ def dataframe_from_file(file):
     pd.set_option('colheader_justify', 'center')
     name, ext = os.path.splitext(file.name)
     if ext == '.csv':
-        return pd.read_csv(file, encoding='latin1')
+        return pd.read_csv(file, na_filter=False, encoding='latin1')
     elif ext == '.pdf':
         return read_pdf(file)
     elif ext == '.txt':
@@ -272,15 +279,10 @@ def logistic_regression(df):
         plt.colorbar()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
-        img = BytesIO()
-        plt.savefig(img, format="png")
-        img.seek(0)
-        matrix_plot = base64.b64encode(img.getvalue()).decode()
-        plt.clf()
+        matrix_plot = generate_graph_img(plt)
 
         # Classificatin report
         report = classification_report(y_test, y_pred)
-        print(report)
 
         # Probabilité des prédictions
         prob_pred = classifier.predict_proba(X_train)
@@ -291,11 +293,7 @@ def logistic_regression(df):
         faux_positive, vrai_positive, seuils = roc_curve(y_train, y_score)
         plt.figure(figsize=(11, 8))
         courbe_roc_func(faux_positive, vrai_positive)
-        img = BytesIO()
-        plt.savefig(img, format="png")
-        img.seek(0)
-        courbe_roc = base64.b64encode(img.getvalue()).decode()
-        plt.clf()
+        courbe_roc = generate_graph_img(plt)
         score_roc = roc_auc_score(y_train, y_score)
         score_roc = score_roc * 100
 
@@ -316,11 +314,7 @@ def logistic_regression(df):
         plt.xlabel('Age')
         plt.ylabel('Estimated Salary')
         plt.legend()
-        img = BytesIO()
-        plt.savefig(img, format="png")
-        img.seek(0)
-        graph_url_train = base64.b64encode(img.getvalue()).decode()
-        plt.clf()
+        graph_url_train = generate_graph_img(plt)
 
         # Visualising the Test set results
         X_set, y_set = X_test, y_test
@@ -337,11 +331,7 @@ def logistic_regression(df):
         plt.xlabel('Age')
         plt.ylabel('Estimated Salary')
         plt.legend()
-        img = BytesIO()
-        plt.savefig(img, format="png")
-        img.seek(0)
-        graph_url_test = base64.b64encode(img.getvalue()).decode()
-        plt.clf()
+        graph_url_test = generate_graph_img(plt)
         response = {
             'matrix_plot': f'data:image/png;base64,{matrix_plot}',
             'report': report,
@@ -368,23 +358,20 @@ def courbe_roc_func(faux_positive, vrai_positive, label=None):
 
 def svr(df):
     X = df.iloc[:, 1:2].values
-    y = df.iloc[:, 2].values
+    y = df.iloc[:, 2:3].values
 
     response = {'error': False}
     try:
-        # Splitting the dataset into the Training set and Test set
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
-        # Feature Scaling
         sc_X = StandardScaler()
         sc_y = StandardScaler()
         X = sc_X.fit_transform(X)
-        y = sc_y.fit_transform([y])
+        y = sc_y.fit_transform(y)
 
         regressor = SVR(kernel = 'rbf')
-        regressor.fit(X, y.ravel())
+        regressor.fit(X, y)
 
         # Predicting a new result
-        y_pred = regressor.predict(X)
+        y_pred = regressor.predict(np.array([6.5]).reshape(1, 1))
         y_pred = sc_y.inverse_transform(y_pred)
 
         # Visualising the SVR results
@@ -414,6 +401,196 @@ def svr(df):
             'error': str(e)
         }
     return response
+
+def k_nearest_neighbors(df):
+    X = df.iloc[:, [2, 3]].values
+    y = df.iloc[:, 4].values
+
+    response = {'error': False}
+    try:
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+
+        # Feature Scaling
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+
+        # Fitting K-NN to the Training set
+        classifier = KNeighborsClassifier(n_neighbors = 5, metric = 'minkowski', p = 2)
+        classifier.fit(X_train, y_train)
+
+        # Predicting the Test set results
+        y_pred = classifier.predict(X_test)
+
+        # Making the Confusion Matrix
+        cm = confusion_matrix(y_test, y_pred)
+        plt.matshow(cm)
+        plt.title('Confusion matrix')
+        plt.colorbar()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+        matrix_plot = generate_graph_img(plt)
+
+
+        # data = y_train, X_train
+        # data=data.reshape((100,300))
+
+        # Probabilité de nos predictions
+        prob_pred = classifier.predict_proba(X_train)
+        y_score = prob_pred[:,1]
+
+        faux_positive, vrai_positive, seuils = roc_curve(y_train, y_score)
+        plt.figure(figsize=(12, 8))
+        courbe_roc_func(faux_positive, vrai_positive)
+        courbe_roc = generate_graph_img(plt)
+
+        score_roc = roc_auc_score(y_train, y_score)
+        score_roc = score_roc * 100
+
+
+        # Visualising the Training set results
+        X_set, y_set = X_train, y_train
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('orange', 'yellow')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('blue', 'grey'))(i), label = j)
+        plt.title('K-NN (Training set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        graph_url_train = generate_graph_img(plt)
+
+        # Visualising the Test set results
+        X_set, y_set = X_test, y_test
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('yellow', 'orange')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('blue', 'yellow'))(i), label = j)
+        plt.title('K-NN (Test set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        graph_url_test = generate_graph_img(plt)
+
+        response = {
+            'matrix_plot': f'data:image/png;base64,{matrix_plot}',
+            'courbe_roc': f'data:image/png;base64,{courbe_roc}',
+            'score_roc': score_roc,
+            'train_plot': f'data:image/png;base64,{graph_url_train}',
+            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'confusion_matrix': cm,
+            'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
+
+
+def support_vector_machine(df, kernel):
+    X = df.iloc[:, [2, 3]].values
+    y = df.iloc[:, 4].values
+    response = {'error': False}
+    try:
+
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+
+        # Feature Scaling
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+
+        # Fitting SVM to the Training set
+        classifier = SVC(kernel = kernel, random_state = 0, probability = True)
+        classifier.fit(X_train, y_train)
+
+        # Predicting the Test set results
+        y_pred = classifier.predict(X_test)
+
+        # Making the Confusion Matrix
+        cm = confusion_matrix(y_test, y_pred)
+        plt.matshow(cm)
+        plt.title('Confusion matrix')
+        plt.colorbar()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+        matrix_plot = generate_graph_img(plt)
+
+        # Probabilité de nos predictions
+        prob_pred = classifier.predict_proba(X_train)
+        y_score = prob_pred[:,1]
+
+        # from sklearn.metrics import roc_curve, auc
+        # Courbe ROC
+        faux_positive, vrai_positive, seuils = roc_curve(y_train, y_score)
+        plt.figure(figsize=(12, 8))
+        courbe_roc_func(faux_positive, vrai_positive)
+        courbe_roc = generate_graph_img(plt)
+        score_roc = roc_auc_score(y_train, y_score)
+        score_roc = score_roc * 100
+
+        # Visualising the Training set results
+        X_set, y_set = X_train, y_train
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('blue', 'yellow')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('red', 'green'))(i), label = j)
+        plt.title('SVM (Training set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        graph_url_train = generate_graph_img(plt)
+
+        # Visualising the Test set results
+        X_set, y_set = X_test, y_test
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('orange', 'blue')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('red', 'green'))(i), label = j)
+        plt.title('SVM (Test set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        graph_url_test = generate_graph_img(plt)
+        response = {
+            'matrix_plot': f'data:image/png;base64,{matrix_plot}',
+            'courbe_roc': f'data:image/png;base64,{courbe_roc}',
+            'score_roc': score_roc,
+            'train_plot': f'data:image/png;base64,{graph_url_train}',
+            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'confusion_matrix': cm,
+            'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
+
+
 
 def decision_tree_regressor(df):
     X = df.iloc[:, 1:2].values
@@ -548,6 +725,489 @@ def generate_graph_img(plot):
     graph_img = base64.b64encode(img.getvalue()).decode()
     plot.clf()
     return graph_img
+
+
+def classification(df, classifier_type, plot_title):
+    X = df.iloc[:, [2, 3]].values
+    y = df.iloc[:, 4].values
+    response = {'error': False}
+    try:
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+
+        # Feature Scaling
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+
+        # Fitting Decision Tree Classification to the Training set
+        classifier = None
+        if classifier_type == 'decision-tree':     
+            classifier = DecisionTreeClassifier(criterion = 'entropy', random_state = 0)
+        elif classifier_type == 'naives-bayes':
+            classifier = GaussianNB()
+        elif classifier_type == 'random-forest':
+            classifier = RandomForestClassifier(n_estimators = 10, criterion = 'entropy', random_state = 0)
+
+        classifier.fit(X_train, y_train)
+
+        # Predicting the Test set results
+        y_pred = classifier.predict(X_test)
+
+        # Making the Confusion Matrix
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize = (10,7))
+        ax = sns.heatmap(cm, annot=True)
+        fig = ax.get_figure()
+        img = BytesIO()
+        fig.savefig(img, format='png')
+        img.seek(0)
+        matrix_plot = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
+        
+        # Classification report
+        report = classification_report(y_test, y_pred)
+
+        # Visualising the Training set results
+        X_set, y_set = X_train, y_train
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('red', 'green')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('orange', 'blue'))(i), label = j)
+        plt.title(f'{plot_title} (Training set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        graph_url_train = generate_graph_img(plt)
+
+        # Visualising the Test set results
+        X_set, y_set = X_test, y_test
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('blue', 'red')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('orange', 'green'))(i), label = j)
+        plt.title(f'{plot_title} (Test set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        graph_url_test = generate_graph_img(plt)
+
+        # Probabilité de nos predictions
+        prob_pred = classifier.predict_proba(X_train)
+        y_score = prob_pred[:,1]
+
+        # from sklearn.metrics import roc_curve, auc
+        # Courbe ROC
+        faux_positive, vrai_positive, seuils = roc_curve(y_train, y_score)
+
+        plt.figure(figsize=(12, 8))
+        courbe_roc_func(faux_positive, vrai_positive)
+        courbe_roc = generate_graph_img(plt)
+
+        score_roc = roc_auc_score(y_train, y_score)
+        score_roc = score_roc * 100
+
+        response = {
+            'matrix_plot': f'data:image/png;base64,{matrix_plot}',
+            'courbe_roc': f'data:image/png;base64,{courbe_roc}',
+            'score_roc': score_roc,
+            'train_plot': f'data:image/png;base64,{graph_url_train}',
+            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'confusion_matrix': cm,
+            'error': False,
+        }
+
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
+
+
+def k_means_cluster(df):
+    X = df.iloc[:, [3, 4]].values
+    y = df.iloc[:, 3:4].values
+    response = {'error': False}
+    try:
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
+
+        # Feature Scaling
+        print("Done")
+        sc_X = StandardScaler()
+        X_train = sc_X.fit_transform(X_train)
+        X_test = sc_X.transform(X_test)
+        sc_y = StandardScaler()
+        y_train = sc_y.fit_transform(y_train)
+
+        # Using the elbow method to find the optimal number of clusters 
+        wcss = []
+        for i in range(1, 11):
+            kmeans = KMeans(n_clusters = i, init = 'k-means++', random_state = 42)
+            kmeans.fit(X)
+            wcss.append(kmeans.inertia_)
+        plt.plot(range(1, 11), wcss)
+        plt.title('The Elbow Method')
+        plt.xlabel('Number of clusters')
+        plt.ylabel('WCSS')
+        elbow_graph = generate_graph_img(plt)
+
+        # Fitting K-Means to the dataset
+        Kmeans = KMeans(n_clusters = 5, init = 'k-means++', random_state = 42)
+
+        # Predic
+        y_kmeans = kmeans.fit_predict(X)
+        rand_score = adjusted_rand_score(y.ravel(), y_kmeans)
+
+        # Visualising the clusters
+        plt.scatter(X[y_kmeans == 0, 0], X[y_kmeans == 0, 1], s = 100, c = 'red', label = 'Cluster 1')
+        plt.scatter(X[y_kmeans == 1, 0], X[y_kmeans == 1, 1], s = 100, c = 'blue', label = 'Cluster 2')
+        plt.scatter(X[y_kmeans == 2, 0], X[y_kmeans == 2, 1], s = 100, c = 'green', label = 'Cluster 3')
+        plt.scatter(X[y_kmeans == 3, 0], X[y_kmeans == 3, 1], s = 100, c = 'cyan', label = 'Cluster 4')
+        plt.scatter(X[y_kmeans == 4, 0], X[y_kmeans == 4, 1], s = 100, c = 'magenta', label = 'Cluster 5')
+        plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s = 300, c = 'yellow', label = 'Centroids')
+        plt.title('Clusters of customers')
+        plt.xlabel('Annual Income (k$)')
+        plt.ylabel('Spending Score (1-100)')
+        plt.legend()
+        clusters = generate_graph_img(plt)
+        response = {
+            'elbow_graph': f'data:image/png;base64,{elbow_graph}',
+            'clusters': f'data:image/png;base64,{clusters}',
+            'error': False
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
+
+
+def hierarchical_cluster(df):
+    X = df.iloc[:, [3, 4]].values
+    y = df.iloc[:, 3:4].values
+    response = {'error': False}
+    try:
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
+
+        # Feature Scaling
+        sc_X = StandardScaler()
+        X_train = sc_X.fit_transform(X_train)
+        X_test = sc_X.transform(X_test)
+        sc_y = StandardScaler()
+        y_train = sc_y.fit_transform(y_train)
+
+        # Using the dendrogram to find the optimal number of clusters
+        dendrogram = sch.dendrogram(sch.linkage(X, method = 'ward'))
+        plt.title('Dendrogram')
+        plt.xlabel('Customers')
+        plt.ylabel('Euclidean distances')
+        dendrogram_graph = generate_graph_img(plt)
+
+        # Fitting Hierarchical Clustering to the dataset
+        hc = AgglomerativeClustering(n_clusters = 5, affinity = 'euclidean', linkage = 'ward')
+
+        # predict
+        y_hc = hc.fit_predict(X)
+
+        rand_score = adjusted_rand_score(y.ravel(), y_hc)
+        homogeneity_score(y.ravel(), y_hc)
+        v_measure_score(y.ravel(), y_hc)
+
+        # Visualising the clusters
+        plt.scatter(X[y_hc == 0, 0], X[y_hc == 0, 1], s = 100, c = 'red', label = 'Cluster 1')
+        plt.scatter(X[y_hc == 1, 0], X[y_hc == 1, 1], s = 100, c = 'blue', label = 'Cluster 2')
+        plt.scatter(X[y_hc == 2, 0], X[y_hc == 2, 1], s = 100, c = 'orange', label = 'Cluster 3')
+        plt.scatter(X[y_hc == 3, 0], X[y_hc == 3, 1], s = 100, c = 'grey', label = 'Cluster 4')
+        plt.scatter(X[y_hc == 4, 0], X[y_hc == 4, 1], s = 100, c = 'yellow', label = 'Cluster 5')
+        plt.title('Clusters of customers')
+        plt.xlabel('Annual Income (k$)')
+        plt.ylabel('Spending Score (1-100)')
+        plt.legend()
+        clusters = generate_graph_img(plt)
+        response = {
+            'dendrogram': f'data:image/png;base64,{dendrogram_graph}',
+            'clusters': f'data:image/png;base64,{clusters}',
+            'error': False
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
+
+
+def lda(df):
+    X = df.iloc[:, 0:13].values
+    y = df.iloc[:, 13].values
+
+    response = {'error': False}
+
+    try:
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
+
+        # Feature Scaling
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+
+        # Applying LDA
+        lda = LDA(n_components = 2)
+        X_train = lda.fit_transform(X_train, y_train)
+        X_test = lda.transform(X_test)
+
+        # Fitting Logistic Regression to the Training set
+        classifier = LogisticRegression(random_state = 0)
+        classifier.fit(X_train, y_train)
+
+        # Predicting the Test set results
+        y_pred = classifier.predict(X_test)
+
+        # Making the Confusion Matrix
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize = (10,7))
+        ax = sns.heatmap(cm, annot=True)
+        fig = ax.get_figure()
+        img = BytesIO()
+        fig.savefig(img, format='png')
+        img.seek(0)
+        matrix_plot = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
+
+        report = classification_report(y_test, y_pred)
+
+        # Visualising the Training set results
+        X_set, y_set = X_train, y_train
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('lightblue', 'orange', 'blue')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('red', 'green', 'orange'))(i), label = j)
+        plt.title('LDA (Training set)')
+        plt.xlabel('LD1')
+        plt.ylabel('LD2')
+        plt.legend()
+        graph_url_train = generate_graph_img(plt)
+
+        # Visualising the Test set results
+        X_set, y_set = X_test, y_test
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('blue', 'grey', 'lightblue')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('red', 'green', 'blue'))(i), label = j)
+        plt.title('LDA (Test set)')
+        plt.xlabel('LD1')
+        plt.ylabel('LD2')
+        plt.legend()
+        graph_url_test = generate_graph_img(plt)
+        response = {
+            'matrix_plot': f'data:image/png;base64,{matrix_plot}',
+            'train_plot': f'data:image/png;base64,{graph_url_train}',
+            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'confusion_matrix': cm,
+            'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
+
+
+def pca(df):
+    X = df.iloc[:, 0:13].values
+    y = df.iloc[:, 13].values
+
+    response = {'error': False}
+    try:
+        # Splitting the dataset into the Training set and Test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
+
+        # Feature Scaling
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+
+        # Applying PCA
+        pca = PCA(n_components = 2)
+        X_train = pca.fit_transform(X_train)
+        X_test = pca.transform(X_test)
+        explained_variance = pca.explained_variance_ratio_
+
+        # Fitting Logistic Regression to the Training set
+        classifier = LogisticRegression(random_state = 0)
+        classifier.fit(X_train, y_train)
+
+        # Predicting the Test set results
+        y_pred = classifier.predict(X_test)
+
+        # Making the Confusion Matrix
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize = (10,7))
+        ax = sns.heatmap(cm, annot=True)
+        fig = ax.get_figure()
+        img = BytesIO()
+        fig.savefig(img, format='png')
+        img.seek(0)
+        matrix_plot = base64.b64encode(img.getvalue()).decode()
+        plt.clf()
+
+        report = classification_report(y_test, y_pred)
+
+        # Visualising the Training set results
+        X_set, y_set = X_train, y_train
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('orange', 'grey', 'blue')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('red', 'green', 'blue'))(i), label = j)
+        plt.title('PCA (Training set)')
+        plt.xlabel('PC1')
+        plt.ylabel('PC2')
+        plt.legend()
+        graph_url_train = generate_graph_img(plt)
+
+        # Visualising the Test set results
+        X_set, y_set = X_test, y_test
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('orange', 'grey', 'blue')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('red', 'green', 'blue'))(i), label = j)
+        plt.title('PCA (Test set)')
+        plt.xlabel('PC1')
+        plt.ylabel('PC2')
+        plt.legend()
+        graph_url_test = generate_graph_img(plt)
+        response = {
+            'matrix_plot': f'data:image/png;base64,{matrix_plot}',
+            'train_plot': f'data:image/png;base64,{graph_url_train}',
+            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'confusion_matrix': cm,
+            'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+
+    return response
+
+
+def kpca(df):
+    X = df.iloc[:, [2, 3]].values
+    y = df.iloc[:, 4].values
+
+    try:
+        # Splitting the dataset into the Training set and Test set
+        from sklearn.model_selection import train_test_split
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+
+        # Feature Scaling
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+
+        # Applying Kernel PCA
+        kpca = KernelPCA(n_components = 2, kernel = 'rbf')
+        X_train = kpca.fit_transform(X_train)
+        X_test = kpca.transform(X_test)
+
+        # Fitting Logistic Regression to the Training set
+        from sklearn.linear_model import LogisticRegression
+        classifier = LogisticRegression(random_state = 0)
+        classifier.fit(X_train, y_train)
+
+        # Predicting the Test set results
+        y_pred = classifier.predict(X_test)
+
+        # Making the Confusion Matrix
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize = (10,7))
+        ax = sns.heatmap(cm, annot=True)
+        fig = ax.get_figure()
+        img = BytesIO()
+        fig.savefig(img, format='png')
+        img.seek(0)
+        matrix_plot = base64.b64encode(img.getvalue()).decode()
+
+        report = classification_report(y_test, y_pred)
+
+        # Visualising the Training set results
+        X_set, y_set = X_train, y_train
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('pink', 'red')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('black', 'white'))(i), label = j)
+        plt.title('Kernel PCA (Training set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        graph_url_train = generate_graph_img(plt)
+
+        # Visualising the Test set results
+        X_set, y_set = X_test, y_test
+        X1, X2 = np.meshgrid(np.arange(start = X_set[:, 0].min() - 1, stop = X_set[:, 0].max() + 1, step = 0.01),
+                             np.arange(start = X_set[:, 1].min() - 1, stop = X_set[:, 1].max() + 1, step = 0.01))
+        plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
+                     alpha = 0.75, cmap = ListedColormap(('blue', 'purple')))
+        plt.xlim(X1.min(), X1.max())
+        plt.ylim(X2.min(), X2.max())
+        for i, j in enumerate(np.unique(y_set)):
+            plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
+                        c = ListedColormap(('red', 'black'))(i), label = j)
+        plt.title('Kernel PCA (Test set)')
+        plt.xlabel('Age')
+        plt.ylabel('Estimated Salary')
+        plt.legend()
+        graph_url_test = generate_graph_img(plt)
+        response = {
+            'matrix_plot': f'data:image/png;base64,{matrix_plot}',
+            'train_plot': f'data:image/png;base64,{graph_url_train}',
+            'test_plot': f'data:image/png;base64,{graph_url_test}',
+            'confusion_matrix': cm,
+            'error': False,
+        }
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+    return response
+
 
 
 

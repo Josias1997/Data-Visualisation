@@ -4,6 +4,9 @@ import DataManipulationPage from '../Pages/DataManipulation/DataManipulationPage
 import RStatisticsPage from '../Pages/RStatistics/RStatisticsPage';
 import ModelisationPage from '../Pages/Modelisation/ModelisationPage';
 import MachineLearning from '../Pages/MachineLearning/MachineLearning';
+import DeepLearning from '../Pages/DeepLearning/DeepLearning';
+import TextMining from '../Pages/TextMining/TextMining';
+import Dashboard from '../Pages/Dashboard/Dashboard';
 
 const Routes = props => {
     return (
@@ -12,6 +15,9 @@ const Routes = props => {
             <Route path={"/r-statistics"} component={RStatisticsPage}/>
             <Route path={"/modelisation"} component={ModelisationPage} />
             <Route path={"/machine-learning"} component={MachineLearning} />
+            <Route path={"/deep-learning"} component={DeepLearning} />
+          	<Route path={"/text-mining"} component={TextMining} />
+           	<Route path={"/dashboard"} component={Dashboard} />
    	 	</Switch>
     )
 }

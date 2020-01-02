@@ -86,11 +86,6 @@ const ModelisationPage = props => {
                     columns={props.trainingSet.columns}
                     data={props.trainingSet.rows}
                     options={options}
-                    editable={{
-                        onRowAdd: newData => addRow(newData),
-                        onRowUpdate: (newData, oldData) => updateRow(newData, oldData),
-                        onRowDelete: oldData => deleteRow(oldData)
-                    }}
                 />
                 </div>
                 <div className="container justify-content-center mt-5 mb-3">
@@ -99,11 +94,6 @@ const ModelisationPage = props => {
                     columns={props.testSet.columns}
                     data={props.testSet.rows}
                     options={options}
-                    editable={{
-                        onRowAdd: newData => addRow(newData),
-                        onRowUpdate: (newData, oldData) => updateRow(newData, oldData),
-                        onRowDelete: oldData => deleteRow(oldData)
-                    }}
                  />
                  </div></> : <Spinner />)
                 }

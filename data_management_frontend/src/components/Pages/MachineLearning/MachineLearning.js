@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
-import {options, addRow, updateRow, deleteRow} from '../../../utility/settings';
+import { options } from '../../../utility/settings';
 import { createJsonData } from '../../../utility/utility';
 import MaterialTable from "material-table";
 import AlignCenter from "../../UI/AlignCenter/AlignCenter";
@@ -34,13 +34,6 @@ const MachineLearning = (props) => {
     const [xValue, setXValue] = useState('');
     const [algorithm, setAlgorithm] = useState('');
 
-    useEffect(() => {
-        if (props.fileId !== undefined) {
-             const data = createJsonData(['id'], [props.fileId]);
-             props.onSplitDataSet(data);
-        }
-    }, [props.fileId]);
-
     const handleAgorithmChange = (event) => {
         setAlgorithm(event.target.value);
     };
@@ -63,13 +56,19 @@ const MachineLearning = (props) => {
         props.onPredict(data);
     };
 
+    const split = () => {
+        if (props.fileId !== undefined) {
+            const data = createJsonData(['id'], [props.fileId]);
+            props.onSplitDataSet(data);
+        }
+    }
 	return (
 		<MDBContainer>
 			{
 				props.fileId ? <>
 				 <AlignCenter>
                     <MDBCol col={12}>
-                        <Settings page="machine-learning" onFit={fit} onPredict={predict}/>
+                        <Settings page="machine-learning" onFit={fit} onPredict={predict} onSplit={split}/>
                     </MDBCol>
                 </AlignCenter>
                 <MDBCol col={12}>
@@ -80,7 +79,12 @@ const MachineLearning = (props) => {
                 <div className="container justify-content-center mt-5 mb-3">
                 {
                     (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr'
-                    || algorithm === 'decision-tree-regressor' || algorithm === 'random-forest-regression') ? null : <>
+                    || algorithm === 'decision-tree-regressor' || algorithm === 'random-forest-regression' || algorithm === 'k-nearest-neighbors'
+                    || algorithm === 'svc' || algorithm === 'k-svc' || algorithm === 'decision-tree-classification' 
+                    || algorithm === 'naives-bayes' || algorithm === 'random-forest-classification' || algorithm === 'k-means-cluster' ||
+                    algorithm === 'hierarchical-cluster' || algorithm === 'lda' || algorithm === 'pca' || 
+                                    algorithm === 'kpca') 
+                    ? null : <>
                         <FormControl className={classes.formControl}>
                         <InputLabel id="independantVariable">X</InputLabel>
                         <Select
@@ -121,8 +125,20 @@ const MachineLearning = (props) => {
                             <MenuItem value={'multiple-linear-regression'}>Multiple Linear Regression</MenuItem>
                             <MenuItem value={'logistic-regression'}>Logistic Regression</MenuItem>
                             <MenuItem value={'svr'}>SVR</MenuItem>
-                            <MenuItem value={'decision-tree-regressor'}>Decsion Tree Regressor</MenuItem>
+                            <MenuItem value={'decision-tree-regressor'}>Decision Tree Regression</MenuItem>
                             <MenuItem value={'random-forest-regression'}>Random Forest Regression</MenuItem>
+                            <MenuItem value={'k-nearest-neighbors'}>K-Nearest Neigbors</MenuItem>
+                            <MenuItem value={'svc'}>Support Vector Machine</MenuItem>
+                            <MenuItem value={'k-svc'}>Kernel Support Vector Machine</MenuItem>
+                            <MenuItem value={'decision-tree-classification'}>Decision Tree Classification</MenuItem>
+                            <MenuItem value={'naives-bayes'}>Naives Bayes</MenuItem>
+                            <MenuItem value={'random-forest-classification'}>Random Forest Classification</MenuItem>
+                            <MenuItem value={'k-means-cluster'}>K-Means Cluster</MenuItem>
+                            <MenuItem value={'hierarchical-cluster'}>Hierarchical Cluster</MenuItem>
+                            <MenuItem value={'lda'}>Linear Discriminant Analysis</MenuItem>
+                            <MenuItem value={'pca'}>Principal Component Analysis</MenuItem>
+                            <MenuItem value={'kpca'}>Kernel PCA</MenuItem>
+
                         </Select>
                     </FormControl>
                 </div>
@@ -132,7 +148,13 @@ const MachineLearning = (props) => {
                     {
                         props.predicted ? <> {
                             (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr'
-                                 || algorithm === 'decision-tree-regressor' || algorithm === 'random-forest-regression') ? null : <>
+                                 || algorithm === 'decision-tree-regressor' || algorithm === 'random-forest-regression' 
+                                 || algorithm === 'k-nearest-neighbors' || algorithm === 'svc' || algorithm === 'k-svc' || 
+                                 algorithm === 'decision-tree-classification' || algorithm === 'naives-bayes' 
+                                 || algorithm === 'random-forest-classification' || algorithm === 'k-means-cluster' ||
+                                    algorithm === 'hierarchical-cluster' || algorithm === 'lda' || algorithm === 'pca' || 
+                                    algorithm === 'kpca') 
+                            ? null : <>
                             <table className="table table-stripped">
                         <thead>
                             <tr>
@@ -172,12 +194,50 @@ const MachineLearning = (props) => {
                             </> : null
                         }
                         {
+                                algorithm === 'lda' || algorithm === 'pca' || algorithm === 'kpca' ? <>
+                                <h3>Confusion Matrix</h3>
+                                <div className=" mt-2 container justify-content-center">
+                                    {props.confusionMatrix !== undefined ? <Matrix matrix={props.confusionMatrix} /> : null}
+                                </div>
+                                <h3 className="mt-3">Confusion Matrix Plot</h3><br />
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.matrixPlot} alt="Confusion Matrix"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.trainPlotPath} alt="Train set plot"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.testPlotPath} alt="Test set plot" />
+                                </div>
+                            </> : null
+                        }
+                        {
                             algorithm === 'svr' ? <>
                                  <div className="col-md-12 d-flex justify-content-center">
                                     <img src={props.svrResults} alt="SVR Results"/>
                                 </div>
                                 <div className="col-md-12 d-flex justify-content-center">
                                     <img src={props.svrResultsHR} alt="SVR Results with higher resolution" />
+                                </div>
+                            </> : null
+                        }
+                        {
+                            algorithm === 'k-means-cluster' ? <>
+                                 <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.elbowGraph} alt="Elbow Graph"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.clusters} alt="Clusters" />
+                                </div>
+                            </> : null
+                        }
+                        {
+                            algorithm === 'hierarchical-cluster' ? <>
+                                 <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.dendrogramGraph} alt="Dendrogram"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.clusters} alt="Clusters" />
                                 </div>
                             </> : null
                         }
@@ -197,6 +257,33 @@ const MachineLearning = (props) => {
                                         whiteSpace: 'pre-wrap',
                                         fontWeight: 'bold'
                                     }}>{props.report}</span>
+                                </div>
+                                <h3 className="mt-5">Courbe ROC</h3>
+                                <div className="col-md-12">
+                                    <img src={props.courbeRoc} alt="Confusion Matrix"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <h3>Score ROC : {props.scoreRoc}</h3>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.trainPlotPath} alt="Train set plot"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.testPlotPath} alt="Test set plot" />
+                                </div>
+                            </> : null
+                        }
+                        {
+                            algorithm === 'k-nearest-neighbors' || algorithm === 'svc' || algorithm == 'k-svc' 
+                            || algorithm === 'decision-tree-classification' || algorithm === 'naives-bayes' || algorithm === 'random-forest-classification' 
+                            ? <>
+                                <h3>Confusion Matrix</h3>
+                                <div className=" mt-2 container justify-content-center">
+                                    {props.confusionMatrix !== undefined ? <Matrix matrix={props.confusionMatrix} /> : null}
+                                </div>
+                                <h3 className="mt-3">Confusion Matrix Plot</h3><br />
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.matrixPlot} alt="Confusion Matrix"/>
                                 </div>
                                 <h3 className="mt-5">Courbe ROC</h3>
                                 <div className="col-md-12">
@@ -248,31 +335,25 @@ const MachineLearning = (props) => {
                 {
                     props.predicted ? null : (props.splitProcessing ? <Spinner /> : <> 
                     <div className="container justify-content-center mt-5 mb-3">
-                    <MaterialTable
-                    title={"Training set"}
-                    columns={props.trainingSet.columns}
-                    data={props.trainingSet.rows}
-                    options={options}
-                    editable={{
-                        onRowAdd: newData => addRow(newData),
-                        onRowUpdate: (newData, oldData) => updateRow(newData, oldData),
-                        onRowDelete: oldData => deleteRow(oldData)
-                    }}
-                    />
-                </div>
-        <div className="container justify-content-center mt-5 mb-3">
-            <MaterialTable
-            title={"Test set"}
-            columns={props.testSet.columns}
-            data={props.testSet.rows}
-            options={options}
-            editable={{
-                onRowAdd: newData => addRow(newData),
-                onRowUpdate: (newData, oldData) => updateRow(newData, oldData),
-                onRowDelete: oldData => deleteRow(oldData)
-            }}
-            />
-        </div>
+                    {
+                        Object.entries(props.trainingSet).length !== 0 ? <MaterialTable
+                        title={"Training set"}
+                        columns={props.trainingSet.columns}
+                        data={props.trainingSet.rows}
+                        options={options}
+                    /> : null
+                    }
+                    </div>
+                    <div className="container justify-content-center mt-5 mb-3">
+                    {
+                        Object.entries(props.testSet).length !== 0 ? <MaterialTable
+                        title={"Test set"}
+                        columns={props.testSet.columns}
+                        data={props.testSet.rows}
+                        options={options}
+                        /> : null
+                    }
+                    </div>
                 </>)
                 }
         </>)
@@ -320,6 +401,9 @@ const mapStateToProps = state => {
         svrResultsHR: state.machine_learning.svrResultsHR,
         decisionTreeGraphImg: state.machine_learning.decisionTreeGraphImg,
         randomForestRegressionGraph: state.machine_learning.randomForestRegressionGraph,
+        clusters: state.machine_learning.clusters,
+        elbowGraph: state.machine_learning.elbowGraph,
+        dendrogramGraph: state.machine_learning.dendrogramGraph,
 	}
 };
 
@@ -328,6 +412,7 @@ const mapDispatchToProps = dispatch => {
         onFit: (data) => dispatch(fit(data)),
         onPredict: (data) => dispatch(predict(data)),
         onSplitDataSet: (data) => dispatch(splitDataSet(data)),
+        updateData: data => dispatch(updateDataSuccess(data))
     }
 };
 

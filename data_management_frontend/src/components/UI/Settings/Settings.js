@@ -7,7 +7,7 @@ import ModelingSettings from "./ModelingSettings/ModelingSettings";
 import DataManipulationSettings from "./DataManipulationSettings/DataManipulationSettings";
 import MachineLearningSettings from "./MachineLearningSettings/MachineLearningSettings";
 
-const Settings = ({page, onFileRemove, onFit, onPredict}) => {
+const Settings = ({page, onFileRemove, onFit, onPredict, onSplit}) => {
     let content = null;
     switch(page) {
       case 'data-manipulation':
@@ -20,7 +20,7 @@ const Settings = ({page, onFileRemove, onFit, onPredict}) => {
         content = <ModelingSettings />;
         break;
       case 'machine-learning':
-        content = <MachineLearningSettings onFit={onFit} onPredict={onPredict} />;
+        content = <MachineLearningSettings onFit={onFit} onPredict={onPredict} onSplit={onSplit} />;
         break;
     }
     return (
