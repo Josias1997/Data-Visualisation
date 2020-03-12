@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, HttpResponse
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from .models import File, Token
+from .models import File, Token, PlotFile
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import Http404
@@ -10,7 +10,7 @@ from pandasql import sqldf
 from django.conf import settings
 from decimal import Decimal
 from io import BytesIO
-from helpers.utils import (dataframe_from_file, 
+from helpers.utils import (dataframe_from_file, plots, 
     format_to_json, compute_stats, call_math_function, 
     format_np_array, normalize_set, decision_tree_regressor, random_forest_regression,
     multi_linear_regression, linear_regression, logistic_regression, lda, pca, kpca,
@@ -21,8 +21,11 @@ import base64
 import scipy.stats
 import pandas as pd
 import os
-from helpers.deep_learning import my_func, thompson_sampling, upper_confidence_bound, artificial_neural_network
-
+from helpers.deep_learning import (my_func, thompson_sampling, upper_confidence_bound, artificial_neural_network,
+    recurrent_neural_network, convolutional_neural_network)
+from helpers.text_mining import sentimental_analysis
+import seaborn as sns
+import missingno as msno
 
 # Create your views here.
 
@@ -122,6 +125,26 @@ def login(request):
     })
 
 
+
+@api_view(http_method_names=['POST'])
+def sign_up(request):
+    username = request.data['username']
+    password = request.data['password']
+    email = request.data['email']
+    try:
+        user = User.objects.get(username=username)
+        raise ValidationError('Username is already used', code='invalid')
+    except ObjectDoesNotExist:
+        User.objects.create_user(username, email, password)
+        return Response({
+                'username': username,
+                'password': password,
+                'status': 'success',
+            })
+    except ValidationError:
+        raise Http404
+
+
 @api_view(http_method_names=['POST'])
 def search_value(request):
     pk = request.data['id']
@@ -191,15 +214,28 @@ def plot(request):
     columns = request.data['columns'].split(",")
     x = request.data['x']
     kind = request.data['kind']
+    y_colors = request.data['y_colors'].split(",")
+    print(y_colors)
     file = get_object_or_404(File, id=pk)
     df = dataframe_from_file(file.file)
     try:
-        df.plot(kind=kind, x=x, y=columns)
-        img = BytesIO()
-        plt.savefig(img, format="png")
-        img.seek(0)
-        graph_url = base64.b64encode(img.getvalue()).decode()
-        plt.clf()
+        graph_url = ''
+        if kind not in ['treemap', 'correlogram', 'density-plot']:
+            if kind == 'barh':
+                df.plot(kind=kind, x=x, y=columns, color=y_colors, figsize=(12,9))
+            elif kind == 'pie':
+               df.plot(kind=kind, x=x, y=columns, colors=y_colors, figsize=(13, 14)) 
+            elif kind == 'box':
+                df.plot(kind=kind, x=x, y=columns, figsize=(12, 7)) 
+            else:
+                df.plot(kind=kind, x=x, y=columns, color=y_colors, figsize=(12,7))
+            img = BytesIO()
+            plt.savefig(img, format="png")
+            img.seek(0)
+            graph_url = base64.b64encode(img.getvalue()).decode()
+            plt.clf()
+        else:
+            graph_url = plots(kind)
         return Response({
             'plot': f'data:image/png;base64,{graph_url}',
             'error': False
@@ -229,6 +265,55 @@ def stats(request):
         response['result'] = ''
         response['error'] = str(e)
     return Response(response)
+
+
+@api_view(['POST'])
+def reset(request):
+    pk = request.data['id']
+    file = get_object_or_404(File, id=pk)
+    df = dataframe_from_file(file.file)
+    return Response(format_to_json(df))
+
+
+@api_view(['POST'])
+def info(request):
+    pk = request.data['id']
+    file = get_object_or_404(File, id=pk)
+    df = dataframe_from_file(file.file)
+    ax = sns.heatmap(df.isnull(), annot=True, cbar=False)
+    fig = ax.get_figure()
+    img = BytesIO()
+    fig.savefig(img, format='png')
+    img.seek(0)
+    seaborn_plot = base64.b64encode(img.getvalue()).decode()
+    plt.clf()
+    ax = msno.matrix(df)
+    fig = ax.get_figure()
+    img = BytesIO()
+    fig.savefig(img, format='png')
+    img.seek(0)
+    matrix_plot = base64.b64encode(img.getvalue()).decode()
+    plt.clf()
+    ax = msno.heatmap(df)
+    fig = ax.get_figure()
+    img = BytesIO()
+    fig.savefig(img, format='png')
+    img.seek(0)
+    heatmap_plot = base64.b64encode(img.getvalue()).decode()
+    plt.clf()
+    ax = msno.bar(df)
+    fig = ax.get_figure()
+    img = BytesIO()
+    fig.savefig(img, format='png')
+    img.seek(0)
+    bar_plot = base64.b64encode(img.getvalue()).decode()
+    plt.clf()
+    return Response({
+        'seaborn_plot': f'data:image/png;base64,{seaborn_plot}',
+        'heatmap_plot': f'data:image/png;base64,{heatmap_plot}',
+        'bar_plot': f'data:image/png;base64,{bar_plot}',
+        'matrix_plot': f'data:image/png;base64,{matrix_plot}',
+    })
 
 
 @api_view(['POST'])
@@ -374,8 +459,45 @@ def predict(request):
         response = upper_confidence_bound(df)
     elif algorithm == 'artificial-neural-network':
         response = artificial_neural_network(df)
+    elif algorithm == 'convolutional-neural-network':
+        response = convolutional_neural_network(df)
+    elif algorithm == 'recurrent-neural-network':
+        response = recurrent_neural_network(df)
+    elif algorithm == 'sentimental-analysis':
+        response = sentimental_analysis(df)
     return Response(response)
 
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+def upload_plots_files(request):
+    file = PlotFile(file=request.data['file'])
+    file.save()
+    files = PlotFile.objects.all()
+    urls = [file.file.url for file in files]
+    return Response({
+        'urls': urls
+    })
+
+
+@api_view(['GET'])
+def plot_files(request):
+    files = PlotFile.objects.all()
+    urls = [file.file.url for file in files]
+    return Response({
+        'urls': urls
+    })
+
+
+@api_view(['DELETE'])
+def delete_plot_files(request):
+    files = PlotFile.objects.all()
+    for file in files:
+        file.delete()
+    return Response({
+        'message': 'success'
+    })
 
 
 

@@ -17,7 +17,7 @@ const Header = props => {
     return (
         <MDBNavbar color={"default-color"} dark expand={"md"}>
             <MDBNavbarBrand>
-                <strong className={"white-text"}>Data Management</strong>
+                <strong className={"white-text"}>Artificial Intelligence</strong>
             </MDBNavbarBrand>
             <MDBNavbarToggler onClick={toggleCollapse}/>
             {
@@ -30,7 +30,7 @@ const Header = props => {
                             <MDBNavLink to={"/r-statistics"}>Data Exploratory Analysis</MDBNavLink>
                         </MDBNavItem>
                         <MDBNavItem>
-                            <MDBNavLink to={"/modelisation"}>Ready for Modelling</MDBNavLink>
+                            <MDBNavLink to={"/modelisation"}>Modeling Processing</MDBNavLink>
                         </MDBNavItem>
                         <MDBNavItem>
                             <MDBNavLink to={"/machine-learning"}>Machine Learning</MDBNavLink>
@@ -43,7 +43,7 @@ const Header = props => {
                         </MDBNavItem>
 
                         <MDBNavItem>
-                            <MDBNavLink to={"/dashboard"}>Dashboard</MDBNavLink>
+                            <MDBNavLink to={"/visualisation"}>Visualisation</MDBNavLink>
                         </MDBNavItem>
                     </MDBNavbarNav>
                     <MDBNavbarNav right>

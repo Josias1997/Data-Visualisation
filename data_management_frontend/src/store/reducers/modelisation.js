@@ -41,6 +41,10 @@ const preprocessingFail = (state, action) => {
 	})
 };
 
+const resetTable = (state, action) => {
+	return updateObject(state, initialState)
+};
+
 const reducer = (state = initialState, action) => {
 	switch(action.type) {
 		case actionTypes.PREPROCESSING_START:
@@ -51,6 +55,8 @@ const reducer = (state = initialState, action) => {
 			return preprocessingNormalizingSuccess(state, action);
 		case actionTypes.PREPROCESSING_FAIL:
 			return preprocessingFail(state, action);
+		case actionTypes.RESET_TABLE:
+			return resetTable(state, action);
 		default:
 			return state;
 	}

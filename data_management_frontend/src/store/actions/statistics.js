@@ -17,3 +17,21 @@ export const openTests = () => {
         type: actionTypes.OPEN_TESTS
     }
 };
+
+export const openStats = () => {
+	return {
+		type: actionTypes.OPEN_STATS
+	}
+};
+
+export const openStorytelling = () => {
+    return {
+        type: actionTypes.OPEN_STORYTELLING
+    }
+};
+
+export const openDashboard = () => {
+    return {
+        type: actionTypes.OPEN_DASHBOARD
+    }
+};

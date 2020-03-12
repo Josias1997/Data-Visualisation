@@ -24,3 +24,7 @@ class Token(models.Model):
 		self.string = secrets.token_urlsafe(16)
 
 
+class PlotFile(models.Model):
+	file = models.ImageField(upload_to='plot/files')
+
+

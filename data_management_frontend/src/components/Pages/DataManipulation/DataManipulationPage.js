@@ -8,6 +8,10 @@ import {connect} from 'react-redux';
 import Spinner from '../../UI/Spinner/Spinner';
 
 const DataManipulationPage = props => {
+    const style = {
+        width: '1100px'
+    };
+
     return (
         <MDBContainer>
             {
@@ -24,7 +28,13 @@ const DataManipulationPage = props => {
                     </MDBCol>
                     <AlignCenter>
                         <MDBCol col={12}>
-                            <DataTable/>
+                        {
+                            props.seabornPlot === '' ? <DataTable/> : <> <img src={props.seabornPlot} alt="Seaborn Plot" style={style} /> 
+                            <img src={props.barPlot} alt="Bar Plot" style={style} />
+                            <img src={props.heatmapPlot} alt="Heatmap Plot" style={style} />
+                            <img src={props.matrixPlot} alt="Matrix Plot" style={style}/>
+                            </>
+                        }
                         </MDBCol>
                     </AlignCenter>
                 </Fragment> : <AlignCenter style={{
@@ -43,7 +53,11 @@ const DataManipulationPage = props => {
 const mapStateToProps = state => {
     return {
         fileId: state.fileUpload.id,
-        loading: state.fileUpload.loading
+        loading: state.fileUpload.loading,
+        seabornPlot: state.fileUpload.seabornPlot,
+        barPlot: state.fileUpload.barPlot,
+        heatmapPlot: state.fileUpload.heatmapPlot,
+        matrixPlot: state.fileUpload.matrixPlot,
     }
 };
 

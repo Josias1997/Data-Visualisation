@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { connect } from "react-redux";
 import { options } from '../../../utility/settings';
-import { createJsonData } from '../../../utility/utility';
+import { createJsonData, convertToPDF, convertToJPEG, convertToPNG } from '../../../utility/utility';
 import MaterialTable from "material-table";
 import AlignCenter from "../../UI/AlignCenter/AlignCenter";
 import Matrix from "../../UI/Matrix/Matrix";
@@ -33,6 +33,7 @@ const MachineLearning = (props) => {
     const [yValue, setYValue] = useState('');
     const [xValue, setXValue] = useState('');
     const [algorithm, setAlgorithm] = useState('');
+    const toBeDownloaded = useRef(null);
 
     const handleAgorithmChange = (event) => {
         setAlgorithm(event.target.value);
@@ -48,7 +49,7 @@ const MachineLearning = (props) => {
 
     const predict = () => {
         const data = createJsonData(['id', 'x', 'y', 'algorithm'], [props.fileId, xValue, yValue, algorithm]);
-        props.onPredict(data);
+        props.onPredict(data, 'deep_learning');
     };
 
     const split = () => {
@@ -56,14 +57,27 @@ const MachineLearning = (props) => {
             const data = createJsonData(['id'], [props.fileId]);
             props.onSplitDataSet(data);
         }
-    }
+    };
+
+    const print = (type) => {
+        if( type === "jpeg") {
+            convertToJPEG(algorithm, toBeDownloaded.current);
+        }
+        else if (type === "pdf") {
+            convertToPDF(algorithm, toBeDownloaded.current);
+        }
+        else if (type === "png") {
+            convertToPNG(algorithm, toBeDownloaded.current);
+        }
+    };
+
 	return (
 		<MDBContainer>
 			{
 				props.fileId ? <>
 				 <AlignCenter>
                     <MDBCol col={12}>
-                        <Settings page="machine-learning" onFit={fit} onPredict={predict} onSplit={split}/>
+                        <Settings page="machine-learning" onPrint={print} onPredict={predict} onSplit={split}/>
                     </MDBCol>
                 </AlignCenter>
                 <MDBCol col={12}>
@@ -73,8 +87,8 @@ const MachineLearning = (props) => {
                 </MDBCol>
                 <div className="container justify-content-center mt-5 mb-3">
                 {
-                    (algorithm === 'fp-growth' || algorithm === 'apriori' || algorithm === 'thompson-sampling'
-                    || algorithm === 'upper-confidence-bound' || algorithm === 'artificial-neural-network') 
+                    (algorithm === 'artificial-neural-network' || algorithm === 'convolutional-neural-network'
+                    || algorithm === 'recurrent-neural-network') 
                     ? null : <>
                         <FormControl className={classes.formControl}>
                         <InputLabel id="independantVariable">X</InputLabel>
@@ -112,11 +126,9 @@ const MachineLearning = (props) => {
                             value={algorithm}
                             onChange={handleAgorithmChange}
                             >
-                            <MenuItem value={'fp-growth'}>FP-Growth</MenuItem>
-                            <MenuItem value={'apriori'}>A priori</MenuItem>
-                            <MenuItem value={'thompson-sampling'}>Thompson Sampling</MenuItem>
-                            <MenuItem value={'upper-confidence-bound'}>Upper Confidence Bound</MenuItem>
                             <MenuItem value={'artificial-neural-network'}>Artificial Neural Network</MenuItem>
+                            <MenuItem value={'convolutional-neural-network'}>Convolutional Neural Network</MenuItem>
+                            <MenuItem value={'recurrent-neural-network'}>Recurrent Neural Network</MenuItem>
                         </Select>
                     </FormControl>
                 </div>
@@ -124,41 +136,53 @@ const MachineLearning = (props) => {
                 (props.processing ? <Spinner /> : <>
                      <div className="container col-md-12 justify-content-center mt-5 mb-3">
 
-                        <div className="container" style={{
+                        <div className="container" ref={toBeDownloaded} id="to-be-downloaded" style={{
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}>
                         {
-                            algorithm === 'fp-growth' || algorithm === 'apriori' ? <>
+                            algorithm === 'recurrent-neural-network' ? <>
                                 <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.supportConfidence} alt="Confusion Matrix"/>
-                                </div>
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.supportLift} alt="Train set plot"/>
+                                    <img src={props.stockPricePlot} alt="Stock Price"/>
                                 </div>
                                 <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.liftConfidence} alt="Test set plot" />
+                                    <img src={props.lstmPlot} alt="Stock Price"/>
                                 </div>
-                            </> : null
-                        }
-                        {
-                            algorithm === 'thompson-sampling' || algorithm === 'upper-confidence-bound' ? <>
-                                 <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.histogram} alt="Decision Tree Graph"/>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.gruPlot} alt="GRU"/>
                                 </div>
-                            </> : null
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.sequencePlot} alt="Sequence"/>
+                                </div></> : null
                         }
                         {
                                 algorithm === 'artificial-neural-network' ? <>
-                                <h3>Confusion Matrix</h3>
                                 <div className=" mt-2 container justify-content-center">
                                     {props.confusionMatrix !== undefined ? <Matrix matrix={props.confusionMatrix} /> : null}
                                 </div>
-                                <h3 className="mt-3">Confusion Matrix Plot</h3><br />
                                 <div className="col-md-12 d-flex justify-content-center">
                                     <img src={props.matrixPlot} alt="Confusion Matrix"/>
+                                </div>
+                            </> : null
+                        }
+                        {
+                            algorithm === 'convolutional-neural-network' ? <>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.samples1} alt="Stock Price"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.samples2} alt="GRU"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.examples} alt="Sequence"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.model} alt="Stock Price"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.matrixPlot} alt="GRU"/>
                                 </div>
                             </> : null
                         }
@@ -212,22 +236,27 @@ const mapStateToProps = state => {
 		loading: state.fileUpload.loading,
 		trainingSet: state.modelisation.trainingSet,
 		testSet: state.modelisation.testSet,
-        processing: state.machine_learning.loading,
-        predicted: state.machine_learning.predicted,
+        processing: state.deep_learning.loading,
+        predicted: state.deep_learning.predicted,
         splitProcessing: state.modelisation.processing,
-        histogram: state.machine_learning.histogram,
-        supportConfidence: state.machine_learning.supportConfidence,
-        supportLift: state.machine_learning.supportLift,
-        liftConfidence: state.machine_learning.liftConfidence,
-        matrixPlot: state.machine_learning.matrixPlot,
-        confusionMatrix: state.machine_learning.confusionMatrix,
+        matrixPlot: state.deep_learning.matrixPlot,
+        confusionMatrix: state.deep_learning.confusionMatrix,
+        stockPricePlot: state.deep_learning.stockPricePlot,
+        lstmPlot: state.deep_learning.lstmPlot,
+        gruPlot: state.deep_learning.gruPlot,
+        sequencePlot: state.deep_learning.sequencePlot,
+        samples1: state.deep_learning.samples1,
+        samples2: state.deep_learning.samples2,
+        examples: state.deep_learning.examples,
+        model: state.deep_learning.model,
+        matrixPlot: state.deep_learning.matrixPlot,
 	}
 };
 
 const mapDispatchToProps = dispatch => {
     return {
         onFit: (data) => dispatch(fit(data)),
-        onPredict: (data) => dispatch(predict(data)),
+        onPredict: (data, from) => dispatch(predict(data, from)),
         onSplitDataSet: (data) => dispatch(splitDataSet(data)),
         updateData: data => dispatch(updateDataSuccess(data))
     }

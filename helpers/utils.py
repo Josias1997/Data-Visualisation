@@ -26,6 +26,7 @@ from io import BytesIO
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
+import squarify
 
 
 def dataframe_from_file(file):
@@ -51,6 +52,73 @@ def dataframe_from_file(file):
         return pd.read_spss(file)
     else:
         return []
+
+
+def plots(kind):
+    if kind == 'correlogram':
+        ########## Correlogram ####################
+        df = pd.read_csv("helpers/datasets/mtcars.csv")
+
+        # Plot cmap color = "RdYlGn", "PRGn", "seismic", "winter", "cool", "bone", "coolwarm", "Wistia", "hot"
+        plt.figure(figsize=(12,10), dpi= 80)
+        sns.heatmap(df.corr(),
+                    cmap='summer',
+                    center=0,
+                    annot=True)
+
+        # Decorations
+        plt.title('Correlogram of mtcars', fontsize=22)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
+        return generate_graph_img(plt)
+
+    ######### Density plot #####################
+    elif kind == 'density-plot':
+        df = pd.read_csv("helpers/datasets/mpg_ggplot2.csv")
+
+
+        # Plot 1 : Density plot
+        # Draw Plot
+        plt.figure(figsize=(16,10), dpi= 80)
+        plt.subplot(211)
+        sns.kdeplot(df.loc[df['cyl'] == 4, "cty"], shade=True, color="g", label="Cyl=4", alpha=.7)
+        sns.kdeplot(df.loc[df['cyl'] == 5, "cty"], shade=True, color="deeppink", label="Cyl=5", alpha=.7)
+        sns.kdeplot(df.loc[df['cyl'] == 6, "cty"], shade=True, color="dodgerblue", label="Cyl=6", alpha=.7)
+        sns.kdeplot(df.loc[df['cyl'] == 8, "cty"], shade=True, color="orange", label="Cyl=8", alpha=.7)
+        # Decoration
+        plt.title('Density Plot', fontsize=22)
+        plt.legend()
+
+        plt.subplot(212)
+        sns.distplot(df.loc[df['class'] == 'compact', "cty"], color="dodgerblue", label="Compact", hist_kws={'alpha':.7}, kde_kws={'linewidth':3})
+        sns.distplot(df.loc[df['class'] == 'suv', "cty"], color="orange", label="SUV", hist_kws={'alpha':.7}, kde_kws={'linewidth':3})
+        sns.distplot(df.loc[df['class'] == 'minivan', "cty"], color="g", label="minivan", hist_kws={'alpha':.7}, kde_kws={'linewidth':3})
+        plt.ylim(0, 0.35)
+
+        # Decoration
+        plt.title('Density Plot of City Mileage by Vehicle Type', fontsize=22)
+        plt.legend()
+        return generate_graph_img(plt)
+
+    ########## Treemap #################
+    elif kind == 'treemap':
+        # Import Data
+        df_raw = pd.read_csv("helpers/datasets/mpg_ggplot2.csv")
+
+        # Prepare Data
+        df = df_raw.groupby('class').size().reset_index(name='counts')
+        labels = df.apply(lambda x: str(x[0]) + "\n (" + str(x[1]) + ")", axis=1)
+        sizes = df['counts'].values.tolist()
+        colors = [plt.cm.Spectral(i/float(len(labels))) for i in range(len(labels))]
+
+        # Draw Plot
+        plt.figure(figsize=(12,8), dpi= 80)
+        squarify.plot(sizes=sizes, label=labels, color=colors, alpha=.8)
+
+        # Decorate
+        plt.title('Treemap of Vechile Class')
+        plt.axis('off')
+        return generate_graph_img(plt)
 
 
 def format_to_json(df):
@@ -151,6 +219,8 @@ def call_math_function(function, column):
         return np.sqrt(column)
     elif function == 'sort(x)':
         return np.sort(column)
+    elif function == 'stdev(x)':
+        return np.std(column)
 
 def format_np_array(array, function, column, column_name):
     columns = [

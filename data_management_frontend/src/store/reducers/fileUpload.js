@@ -12,7 +12,11 @@ const initialState = {
     columnsNames: [],
     size: 0,
     rows: 0,
-    columns: 0
+    columns: 0,
+    seabornPlot: '',
+    barPlot: '',
+    heatmapPlot: '',
+    matrixPlot: '',
 };
 
 const uploadStart = (state, action) => {
@@ -65,6 +69,10 @@ const updateDataSuccess = (state, action) => {
         file_data: action.data,
         loading: false,
         error: null,
+        seabornPlot: '',
+        barPlot: '',
+        heatmapPlot: '',
+        matrixPlot: '',
     })
 };
 
@@ -75,6 +83,29 @@ const updateDataFail = (state, action) => {
 const removeFile = (state, action) => {
     return updateObject(state, initialState);
 }
+
+const reset = (state, action) => {
+    return updateObject(state, {
+        file_data: action.data,
+        loading: false,
+        error: null,
+        seabornPlot: '',
+        barPlot: '',
+        heatmapPlot: '',
+        matrixPlot: '',
+    })
+};
+
+const infos = (state, action) => {
+    return updateObject(state, {
+        seabornPlot: action.data.seaborn_plot,
+        barPlot: action.data.bar_plot,
+        heatmapPlot: action.data.heatmap_plot,
+        matrixPlot: action.data.matrix_plot,
+        loading: false,
+        error: null
+    })
+};
 
 const reducer = (state = initialState, action) => {
     switch(action.type) {
@@ -94,6 +125,10 @@ const reducer = (state = initialState, action) => {
             return updateDataFail(state, action);
         case actionTypes.REMOVE_FILE:
             return removeFile(state, action);
+        case actionTypes.RESET_DATA:
+            return reset(state, action);
+        case actionTypes.DF_INFO:
+            return infos(state, action);
         default:
             return state;
     }

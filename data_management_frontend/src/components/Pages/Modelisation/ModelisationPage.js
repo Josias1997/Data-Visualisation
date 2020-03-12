@@ -15,7 +15,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import { splitDataSet, normalize } from "../../../store/actions/";
+import { splitDataSet, normalize, resetTable } from "../../../store/actions/";
 import { options } from '../../../utility/settings';
 
 const useStyles = makeStyles(theme => ({
@@ -31,12 +31,6 @@ const useStyles = makeStyles(theme => ({
 const ModelisationPage = props => {
     const classes = useStyles();
     const [normalizer, setNormalizer] = useState('std_scaler');
-
-    useEffect(() => {
-        if(props.id !== undefined) {
-            splitDataSet();
-        }
-    }, [props.id]);
 
 
     const splitDataSet = () => {
@@ -73,6 +67,10 @@ const ModelisationPage = props => {
                     </FormControl>
                     <MDBBtn onClick={normalize}> <MDBIcon className="mr-2" icon={"play"} /> Go</MDBBtn>
                 </div>
+                <div className="container justify-content-center mt-5 mb-3">
+                    <MDBBtn onClick={splitDataSet}> <MDBIcon className="mr-2 " icon={"play"} /> Split the dataset</MDBBtn>
+                    <MDBBtn onClick={props.onReset} color={"danger"}> <MDBIcon className="mr-2" icon={"angle-left"} /> Precedent</MDBBtn>
+                </div>
                 {
                     (!props.processing ? <> 
                         <div className="container justify-content-center mt-5 mb-3">
@@ -80,7 +78,11 @@ const ModelisationPage = props => {
                             props.normalized ? <TableWithNumericValues data={props.normalizedTrainingSet} /> : null
                         }
                 </div>
-                <div className="container justify-content-center mt-5 mb-3">
+                <>
+                {
+                    props.trainingSet.columns === undefined ? <div className="container justify-content-center mt-5 mb-3">
+                   <DataTable />
+                </div> : <>  <div className="container justify-content-center mt-5 mb-3">
                     <MaterialTable
                     title={"Training set"}
                     columns={props.trainingSet.columns}
@@ -95,7 +97,11 @@ const ModelisationPage = props => {
                     data={props.testSet.rows}
                     options={options}
                  />
-                 </div></> : <Spinner />)
+                 </div>
+                </>
+                } 
+                </>
+               </> : <Spinner />)
                 }
 
                 </> : <AlignCenter style={{
@@ -126,7 +132,8 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         onSplitDataSet: (data) => dispatch(splitDataSet(data)),
-        onNormalize: (data) => dispatch(normalize(data))
+        onNormalize: (data) => dispatch(normalize(data)),
+        onReset: () => dispatch(resetTable()),
     }
 }
 

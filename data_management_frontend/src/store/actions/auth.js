@@ -36,6 +36,18 @@ export const checkAuthTimeOut = expirationTime => {
 	}
 }
 
+export const login = () => {
+	return {
+		type: actionTypes.LOGIN_STATE,
+	}
+}
+
+export const register = () => {
+	return {
+		type: actionTypes.REGISTER_STATE,
+	}
+}
+
 const generateSession = (response, dispatch) => {
 	const token = response.data.key;
 	const expirationDate = new Date(new Date().getTime() + 3600 * 1000);
@@ -66,26 +78,28 @@ export const authLogin = (username, password) => {
 		});
 	}
 };
-
-/* Ajout Inscription 
-export const authSignup = (username, email, password, passwordConfirmed) => {
+ 
+export const authSignup = (username, email, password) => {
 	return dispatch => {
 		dispatch(authStart());
-		axios.post('/rest-auth/registration/', {
+		axios.post('/api/signup/', {
 			username: username,
 			email: email,
-			passwor1: password,
-			password2: passwordConfirmed,
+			password: password,
+		}, {
+			headers: {
+				"Content-Type": 'application/json'
+			}
 		})
-		.then(response => {
-			generateSession(response, dispatch);
+		.then(({data}) => {
+			dispatch(authLogin(data.username, data.password))
 		})
 		.catch(error => {
 			dispatch(authFail(error))
 		});
 	}
 };
-*/
+
 
 export const authCheckState = () => {
 	return dispatch => {

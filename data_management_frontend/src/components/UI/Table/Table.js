@@ -55,7 +55,7 @@ const Table = ({ columns, rows }) => {
         	<nav>
 			  <ul className="pagination pg-blue pagination-sm">
 			  	{
-			  		range(0, totalPages).map(page => <li className="page-item" disabled>
+			  		range(0, totalPages).map(page => <li key={page} className="page-item" disabled>
 			  			<a className="page-link" onClick={() => changePage(page + 1)}>
 			  				{page + 1}
 			  			</a>

@@ -3,7 +3,7 @@ import {MDBContainer, MDBBtn, MDBInput} from 'mdbreact';
 import CSRFToken from '../../../utility/CSRFToken.js';
 import Spinner from '../../UI/Spinner/Spinner.js';
 import {connect} from 'react-redux';
-import * as actions from '../../../store/actions/auth';
+import { authLogin, register } from '../../../store/actions/';
 import Grid from "../../UI/Grid/Grid";
 
 const LoginPage = props => {
@@ -39,18 +39,15 @@ const LoginPage = props => {
         <MDBContainer>
             <Grid>
                 {errorMessage}
-                <div className="alert alert-info mt-3">
-                    <span>Username: <strong>admin</strong> Password: <strong>admin</strong></span>
-                </div>
             </Grid>
             {
                 (!props.isAuthenticated && props.loading) ? <Grid><Spinner/></Grid> : <Grid>
                     <form className="mt-5" method="POST">
                         <CSRFToken/>
-                        <p className="h5 text-center mb-4">Connexion</p>
+                        <p className="h5 text-center mb-4">Sign In</p>
                         <div className="grey-text">
                         <MDBInput
-                            label="Nom d'utilisateur"
+                            label="Username"
                             icon="envelope"
                             group
                             type="text"
@@ -61,7 +58,7 @@ const LoginPage = props => {
                             onChange={handleChange}
                         />
                         <MDBInput
-                            label="Mot de passe"
+                            label="Password"
                             icon="lock"
                             id="password"
                             group
@@ -71,7 +68,8 @@ const LoginPage = props => {
                         />
                         </div>
                         <div className="text-center">
-                            <MDBBtn onClick={handleSubmit}>Connexion</MDBBtn>
+                            <MDBBtn onClick={handleSubmit}>Sign in</MDBBtn>
+                            <MDBBtn onClick={props.onRegister} color="primary">Sign Up</MDBBtn>
                         </div>
                     </form>
                 </Grid>
@@ -90,7 +88,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onAuth: (username, password) => dispatch(actions.authLogin(username, password))
+        onAuth: (username, password) => dispatch(authLogin(username, password)),
+        onRegister: () => dispatch(register()),
     }
 };
 

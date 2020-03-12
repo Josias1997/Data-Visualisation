@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useRef} from "react";
+import { MDBBtn, MDBIcon } from 'mdbreact';
 import Spinner from "../Spinner/Spinner";
 import { connect } from 'react-redux';
 import Table from '../Table/Table';
@@ -9,6 +10,8 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { getFunctionsList, createJsonData } from "../../../utility/utility";
 import axios from "../../../instanceAxios";
+import * as WebDataRocksReact from './../../../webdatarocks.react.js';
+
 
 const useStyles = makeStyles(theme => ({
     formControl: {
@@ -43,6 +46,10 @@ const StatisticsTable = ({loading, path, data, fileId}) => {
         setFunctionName(event.target.value);
     };
 
+    const resetData = () => {
+        setResultData(current => data);
+    };
+
     const callFunction = () => {
         const data = createJsonData(['id', 'function', 'x'], [fileId, functionName, xValue]);
         setComputing(true);
@@ -62,8 +69,11 @@ const StatisticsTable = ({loading, path, data, fileId}) => {
                 !loading ?<> 
                     <div className="col-md-8">
                     {
-                        !computing ? <Table columns={resultData.columns} 
-                        rows={resultData.rows}/> : <Spinner />
+                        !computing ? <WebDataRocksReact.Pivot toolbar={true} report={{
+                            dataSource: {
+                                data: resultData.rows
+                            }
+                        }}/> : <Spinner />
                     }
                     </div>
                     <div className="col-md-1">
@@ -83,7 +93,7 @@ const StatisticsTable = ({loading, path, data, fileId}) => {
                                 onChange={handleChange}
                                 >
                                 {
-                                    getFunctionsList().map(name => <MenuItem value={name}>{name}</MenuItem>)
+                                    getFunctionsList().map(name => <MenuItem key={name} value={name}>{name}</MenuItem>)
                                 }
                             </Select>
                         </FormControl>
@@ -96,10 +106,11 @@ const StatisticsTable = ({loading, path, data, fileId}) => {
                             onChange={handleXChange}
                             >
                             {
-                                data.columns.map(column => <MenuItem value={column.field}>{column.field}</MenuItem>)
+                                data.columns.map(column => <MenuItem key={column} value={column.field}>{column.field}</MenuItem>)
                             }
                         </Select>
                     </FormControl>
+                    <MDBBtn color={"danger"} onClick={resetData}><MDBIcon icon={"angle-left"} className="mr-2"></MDBIcon>Precedent</MDBBtn>
                     </div>
                 </>
                 : <Spinner/>

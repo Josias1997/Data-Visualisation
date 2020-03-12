@@ -42,6 +42,8 @@ export const updateDataFail = error => {
 };
 
 export const removeFile = () => {
+    axios.delete('/api/delete-files/')
+        .then(({data}) => console.log(data)).catch(err => console.err);
     return {
         type: actionTypes.REMOVE_FILE
     }
@@ -51,6 +53,20 @@ export const inputValueChanged = file => {
     return {
         type: actionTypes.INPUT_VALUE_CHANGED,
         file: file
+    }
+};
+
+export const dataInfos = data => {
+    return {
+        type: actionTypes.DF_INFO,
+        data: data,
+    }
+};
+
+export const resetData = data => {
+    return {
+        type: actionTypes.RESET_DATA,
+        data: data
     }
 };
 
@@ -74,3 +90,31 @@ export const onChangeHandler = event => {
         dispatch(inputValueChanged(file))
     }
 };
+
+export const getInfos = (id) => {
+    return dispatch => {
+        dispatch(uploadStart());
+        const data = new FormData();
+        data.append('id', id);
+        axios.post('/api/info/', data)
+        .then(({data}) => {
+            dispatch(dataInfos(data));
+        }).catch(error => {
+            dispatch(uploadFail(error));
+        });
+    }
+}
+
+export const reset = (id) => {
+    return dispatch => {
+        dispatch(uploadStart());
+        const data = new FormData();
+        data.append('id', id);
+        axios.post('/api/reset/', data)
+        .then(response => {
+            dispatch(resetData(response.data));
+        }).catch(error => {
+            dispatch(uploadFail(error));
+        });
+    }
+}

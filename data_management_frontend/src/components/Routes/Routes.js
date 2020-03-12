@@ -6,7 +6,7 @@ import ModelisationPage from '../Pages/Modelisation/ModelisationPage';
 import MachineLearning from '../Pages/MachineLearning/MachineLearning';
 import DeepLearning from '../Pages/DeepLearning/DeepLearning';
 import TextMining from '../Pages/TextMining/TextMining';
-import Dashboard from '../Pages/Dashboard/Dashboard';
+import Visualisation from '../Pages/Visualisation/Visualisation';
 
 const Routes = props => {
     return (
@@ -17,7 +17,7 @@ const Routes = props => {
             <Route path={"/machine-learning"} component={MachineLearning} />
             <Route path={"/deep-learning"} component={DeepLearning} />
           	<Route path={"/text-mining"} component={TextMining} />
-           	<Route path={"/dashboard"} component={Dashboard} />
+           	<Route path={"/visualisation"} component={Visualisation} />
    	 	</Switch>
     )
 }

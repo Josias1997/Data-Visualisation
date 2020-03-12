@@ -7,15 +7,22 @@ from .utils import generate_graph_img
 import random
 import math
 from sklearn.metrics import confusion_matrix
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.metrics import f1_score, precision_score, recall_score, mean_squared_error
 import keras
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, LSTM, Dropout, GRU, Bidirectional, Flatten, Conv2D, MaxPool2D
 from keras.utils import plot_model
+from keras.utils.np_utils import to_categorical # convert to one-hot-encoding
+from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import ReduceLROnPlateau
+from keras.optimizers import SGD, RMSprop, Adam
 from ann_visualizer.visualize import ann_viz
+import seaborn as sns
+import warnings
 import os
+import itertools
 
 os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
 
@@ -245,6 +252,7 @@ def artificial_neural_network(df):
 		# pip install ann_visualizer
 		# conda install graphviz
 		ann_viz(classifier, filename="data_management_frontend/static/deep_learning/reseau.gv", title = "Reseau de neurone")
+		plot_model(classifier, to_file='data_management_frontend/static/deep_learning/model.png')
 
 		response = {
 			'matrix_plot': f'data:image/png;base64,{matrix_plot}',
@@ -256,4 +264,333 @@ def artificial_neural_network(df):
 		response = {
 			'error': str(e)
 		}
+	return response
+
+
+def convolutional_neural_network(df):
+	warnings.filterwarnings('ignore')
+	response = {
+		'error': False,
+	}
+	try:
+		# read train 
+		train = pd.read_csv("helpers/datasets/train.csv")
+		print(train.shape)
+		train.head()
+
+		# read test 
+		test= pd.read_csv("helpers/datasets/test.csv")
+		print(test.shape)
+		test.head()
+
+		# put labels into y_train variable
+		Y_train = train["label"]
+		# Drop 'label' column
+		X_train = train.drop(labels = ["label"],axis = 1) 
+
+		# visualize number of digits classes 
+		plt.figure(figsize=(15,7))
+		g = sns.countplot(Y_train)
+		plt.title("Number of digit classes")
+		Y_train.value_counts()
+
+		# plot some samples
+		img = X_train.iloc[0].as_matrix()
+		img = img.reshape((28,28))
+		plt.imshow(img,cmap='gray')
+		plt.title(train.iloc[0,0])
+		plt.axis("off")
+		samples_1 = generate_graph_img(plt)
+
+		# plot some samples
+		img = X_train.iloc[3].as_matrix()
+		img = img.reshape((28,28))
+		plt.imshow(img,cmap='gray')
+		plt.title(train.iloc[3,0])
+		plt.axis("off")
+		samples_2 = generate_graph_img(plt)
+
+		# Normalize the data
+		X_train = X_train / 255.0
+		test = test / 255.0
+		print("x_train shape: ",X_train.shape)
+		print("test shape: ",test.shape)
+
+		# Reshape
+		X_train = X_train.values.reshape(-1,28,28,1)
+		test = test.values.reshape(-1,28,28,1)
+		print("x_train shape: ",X_train.shape)
+		print("test shape: ",test.shape)
+
+		# Label Encoding 
+
+		Y_train = to_categorical(Y_train, num_classes = 10)
+
+		# Split the train and the validation set for the fitting
+		X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size = 0.1, random_state=2)
+		print("x_train shape",X_train.shape)
+		print("x_test shape",X_val.shape)
+		print("y_train shape",Y_train.shape)
+		print("y_test shape",Y_val.shape)
+
+		# Some examples
+		plt.imshow(X_train[2][:,:,0],cmap='gray')
+		examples = generate_graph_img(plt)
+
+
+		model = Sequential()
+
+		model.add(Conv2D(filters = 8, kernel_size = (5,5),padding = 'Same', 
+		                 activation ='relu', input_shape = (28,28,1)))
+		model.add(MaxPool2D(pool_size=(2,2)))
+
+		model.add(Dropout(0.25))
+
+		model.add(Conv2D(filters = 16, kernel_size = (3,3),padding = 'Same', 
+		                 activation ='relu'))
+		model.add(MaxPool2D(pool_size=(2,2), strides=(2,2)))
+
+		model.add(Dropout(0.25))
+
+		model.add(Flatten())
+
+		model.add(Dense(256, activation = "relu"))
+
+		model.add(Dropout(0.5))
+
+		model.add(Dense(10, activation = "softmax"))
+
+		# Define the optimizer
+		optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999)
+
+		# Compile the model
+		model.compile(optimizer = optimizer , loss = "categorical_crossentropy", metrics=["accuracy"])
+
+		epochs = 10  # for better result increase the epochs
+		batch_size = 250
+
+
+		# data augmentation
+		datagen = ImageDataGenerator(
+		        featurewise_center=False,  # set input mean to 0 over the dataset
+		        samplewise_center=False,  # set each sample mean to 0
+		        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+		        samplewise_std_normalization=False,  # divide each input by its std
+		        zca_whitening=False,  # dimension reduction
+		        rotation_range=0.5,  # randomly rotate images in the range 5 degrees
+		        zoom_range = 0.5, # Randomly zoom image 5%
+		        width_shift_range=0.5,  # randomly shift images horizontally 5%
+		        height_shift_range=0.5,  # randomly shift images vertically 5%
+		        horizontal_flip=False,  # randomly flip images
+		        vertical_flip=False)  # randomly flip images
+
+		datagen.fit(X_train)
+
+		# Fit the model
+		history = model.fit_generator(datagen.flow(X_train,Y_train, batch_size=batch_size),
+		                              epochs = epochs, validation_data = (X_val,Y_val),
+		                              steps_per_epoch=X_train.shape[0] // batch_size)
+
+
+		# Evaluate the model
+		# Plot the loss and accuracy curves for training and validation 
+		plt.plot(history.history['val_loss'], color='b', label="validation loss")
+		plt.title("Test Loss")
+		plt.xlabel("Number of Epochs")
+		plt.ylabel("Loss")
+		plt.legend()
+		model_plot = generate_graph_img(plt)
+
+		# Predict the values from the validation dataset
+		Y_pred = model.predict(X_val)
+		# Convert predictions classes to one hot vectors 
+		Y_pred_classes = np.argmax(Y_pred,axis = 1) 
+		# Convert validation observations to one hot vectors
+		Y_true = np.argmax(Y_val,axis = 1) 
+		# compute the confusion matrix
+		matrix = confusion_matrix(Y_true, Y_pred_classes)
+
+		plt.figure(figsize = (10,7))
+		sns.heatmap(matrix, annot=True)
+
+		# plot the confusion matrix
+		f,ax = plt.subplots(figsize=(8, 8))
+		sns.heatmap(matrix, annot=True, linewidths=0.01,cmap="Greens",linecolor="blue", fmt= '.1f',ax=ax)
+		plt.xlabel("Predicted Label")
+		plt.ylabel("True Label")
+		plt.title("Confusion Matrix")
+		matrix_plot = generate_graph_img(plt)
+		response = {
+			'samples_1': f'data:image/png;base64,{samples_1}',
+			'samples_2': f'data:image/png;base64,{samples_2}',
+			'examples': f'data:image/png;base64,{examples}',
+			'model': f'data:image/png;base64,{model_plot}',
+			'confusion_matrix': f'data:image/png;base64,{matrix_plot}'
+		}
+	except Exception as e:
+		response = {
+			'error': str(e)
+		}
+	return response
+
+
+# Some functions to help out with
+def plot_predictions(test,predicted):
+    plt.plot(test, color='red',label='Real IBM Stock Price')
+    plt.plot(predicted, color='blue',label='Predicted IBM Stock Price')
+    plt.title('IBM Stock Price Prediction')
+    plt.xlabel('Time')
+    plt.ylabel('IBM Stock Price')
+    plt.legend()
+    return generate_graph_img(plt)
+
+
+def return_rmse(test,predicted):
+    rmse = math.sqrt(mean_squared_error(test, predicted))
+    print("The root mean squared error is {}.".format(rmse))
+
+
+
+def recurrent_neural_network(df):
+	plt.style.use('fivethirtyeight')
+
+	response = {'error': False}
+	# try:
+	df.set_index('Date')
+	# Checking for missing values
+	training_set = df.loc[:'2016'].iloc[:,1:2].values
+	test_set = df.loc['2017':].iloc[:,1:2].values
+	# We have chosen 'High' attribute for prices. Let's see what it looks like
+	df["High"].loc[:'2016'].plot(figsize=(16,4),legend=True)
+	df["High"].loc['2017':].plot(figsize=(16,4),legend=True)
+	plt.legend(['Training set (Avant 2017)','Test set (2017 et au delà)'])
+	plt.title('IBM stock price')
+	stock_price_plot = generate_graph_img(plt)
+
+	# Scaling the training set
+	sc = MinMaxScaler(feature_range=(0,1))
+	training_set_scaled = sc.fit_transform(training_set)
+
+	# Since LSTMs store long term memory state, we create a data structure with 60 timesteps and 1 output
+	# So for each element of training set, we have 60 previous training set elements 
+	X_train = []
+	y_train = []
+	print(training_set_scaled.shape)
+	for i in range(60,2017):
+	    X_train.append(training_set_scaled[i-60:i,0])
+	    y_train.append(training_set_scaled[i,0])
+
+	X_train, y_train = np.array(X_train), np.array(y_train)
+
+	# Reshaping X_train for efficient modelling
+	X_train = np.reshape(X_train, (X_train.shape[0],X_train.shape[1],1))
+
+	# The LSTM architecture
+	regressor = Sequential()
+
+	# First LSTM layer with Dropout regularisation
+	regressor.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+	print('OK')
+	regressor.add(Dropout(0.2))
+	# Second LSTM layer
+	regressor.add(LSTM(units=50, return_sequences=True))
+	regressor.add(Dropout(0.2))
+
+	# Third LSTM layer
+	regressor.add(LSTM(units=50, return_sequences=True))
+	regressor.add(Dropout(0.2))
+
+	# Fourth LSTM layer
+	regressor.add(LSTM(units=50))
+	regressor.add(Dropout(0.2))
+
+	# The output layer
+	regressor.add(Dense(units=1))
+
+	# Compiling the RNN
+	regressor.compile(optimizer='rmsprop',loss='mean_squared_error')
+
+	# Fitting to the training set
+	regressor.fit(X_train,y_train,epochs=2,batch_size=32)
+
+	# Now to get the test set ready in a similar way as the training set.
+	# The following has been done so forst 60 entires of test set have 60 previous values which is impossible to get unless we take the whole 
+	# 'High' attribute data for processing
+	dataset_total = pd.concat((df["High"].loc[:'2016'],df["High"].loc['2017':]),axis=0)
+	inputs = dataset_total[len(dataset_total)-len(test_set) - 60:].values
+	inputs = inputs.reshape(-1,1)
+	inputs  = sc.transform(inputs)
+
+	# Preparing X_test and predicting the prices
+	X_test = []
+	for i in range(60,311):
+	    X_test.append(inputs[i-60:i,0])
+	X_test = np.array(X_test)
+	X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
+	predicted_stock_price = regressor.predict(X_test)
+	predicted_stock_price = sc.inverse_transform(predicted_stock_price)
+
+	# Visualizing the results for LSTM
+	print(test_set)
+	lstm_plot = plot_predictions(test_set.ravel(),predicted_stock_price)
+
+
+	# The GRU architecture
+	regressorGRU = Sequential()
+
+	# First GRU layer with Dropout regularisation
+	regressorGRU.add(GRU(units=50, return_sequences=True, input_shape=(X_train.shape[1],1), activation='tanh'))
+	regressorGRU.add(Dropout(0.2))
+	# Second GRU layer
+	regressorGRU.add(GRU(units=50, return_sequences=True, input_shape=(X_train.shape[1],1), activation='tanh'))
+	regressorGRU.add(Dropout(0.2))
+	# Third GRU layer
+	regressorGRU.add(GRU(units=50, return_sequences=True, input_shape=(X_train.shape[1],1), activation='tanh'))
+	regressorGRU.add(Dropout(0.2))
+	# Fourth GRU layer
+	regressorGRU.add(GRU(units=50, activation='tanh'))
+	regressorGRU.add(Dropout(0.2))
+	# The output layer
+	regressorGRU.add(Dense(units=1))
+	# Compiling the RNN
+	regressorGRU.compile(optimizer=SGD(lr=0.01, decay=1e-7, momentum=0.9, nesterov=False),loss='mean_squared_error')
+	# Fitting to the training set
+	regressorGRU.fit(X_train,y_train,epochs=2,batch_size=150)
+
+	# Preparing X_test and predicting the prices
+	X_test = []
+	for i in range(60,311):
+	    X_test.append(inputs[i-60:i,0])
+	X_test = np.array(X_test)
+	X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
+	GRU_predicted_stock_price = regressorGRU.predict(X_test)
+	GRU_predicted_stock_price = sc.inverse_transform(GRU_predicted_stock_price)
+
+	# Visualizing the results for GRU
+	gru_plot = plot_predictions(test_set.ravel(),GRU_predicted_stock_price)
+	# Preparing sequence data
+	print(X_train.shape)
+	initial_sequence = X_train[1956,:]
+	sequence = []
+	for i in range(251):
+	    new_prediction = regressorGRU.predict(initial_sequence.reshape(initial_sequence.shape[1],initial_sequence.shape[0],1))
+	    initial_sequence = initial_sequence[1:]
+	    initial_sequence = np.append(initial_sequence,new_prediction,axis=0)
+	    sequence.append(new_prediction)
+	sequence = sc.inverse_transform(np.array(sequence).reshape(251,1))
+
+	# Visualizing the sequence
+	sequence_plot = plot_predictions(test_set.ravel(),sequence)
+	plt.clf()
+
+	response = {
+		'stock_price_plot': f'data:image/png;base64,{stock_price_plot}',
+		'lstm_plot': f'data:image/png;base64,{lstm_plot}',
+		'gru_plot': f'data:image/png;base64,{gru_plot}',
+		'sequence_plot': f'data:image/png;base64,{sequence_plot}',
+	}
+	# except Exception as e:
+	# 	response = {
+	# 		'error': str(e)
+	# 	}
 	return response

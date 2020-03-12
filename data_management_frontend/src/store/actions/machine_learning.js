@@ -1,10 +1,12 @@
 import * as actionTypes from "./actionTypes";
 import axios from "../../instanceAxios";
+import { predictSuccessDeepLearning, processingStartDeepLearning } from './deep_learning';
+import { predictSuccessTextMining, processingStartTextMining } from './text_mining';
 
 
 export const processingStart = () => {
 	return {
-		type: actionTypes.PROCESSING_START
+		type: actionTypes.PROCESSING_START_MACHINE_LEARNING,
 	}
 };
 
@@ -17,7 +19,7 @@ export const fitSuccess = (data) => {
 
 export const predictSuccess = (data) => {
 	return {
-		type: actionTypes.PREDICT_SUCCESS,
+		type: actionTypes.PREDICT_SUCCESS_MACHINE_LEARNING,
 		data: data
 	}
 }
@@ -42,13 +44,33 @@ export const fit = (data) => {
 	}
 }
 
-export const predict = (data) => {
+export const predict = (data, from) => {
 	return dispatch => {
-		dispatch(processingStart());
+		switch(from) {
+			case 'deep_learning':
+				dispatch(processingStartDeepLearning());
+				break;
+			case 'text_mining':
+				dispatch(processingStartTextMining());
+				break;
+			default:
+				dispatch(processingStart());
+				break;
+		}
 		axios.post('/api/predict-data-set/', data)
 		.then(({data}) => {
-			console.log(data);
-			dispatch(predictSuccess(data));
+			console.log(data)
+			switch(from) {
+				case 'deep_learning':
+					dispatch(predictSuccessDeepLearning(data));
+					break;
+				case 'text_mining':
+					dispatch(predictSuccessTextMining(data));
+					break;
+				default:
+					dispatch(predictSuccess(data));
+					break;
+			}
 		}).catch(error => {
 			dispatch(processingFail(error.message));
 		})

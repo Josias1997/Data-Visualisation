@@ -7,7 +7,9 @@ export {
     updateDataSuccess,
     removeFile,
     sendFile,
-    onChangeHandler
+    onChangeHandler,
+    getInfos,
+    reset
 } from './fileUpload';
 
 export {
@@ -22,16 +24,22 @@ export {
     authStart,
     authFail,
     authLogin,
+    authSignup,
     authCheckState,
     authSuccess,
     checkAuthTimeOut,
     logout,
+    login,
+    register,
 } from './auth';
 
 export {
     openTable,
     openPlot,
-    openTests
+    openTests,
+    openStats,
+    openStorytelling,
+    openDashboard,
 } from './statistics';
 
 export {
@@ -48,6 +56,7 @@ export {
     preprocessingFail,
     splitDataSet,
     normalize,
+    resetTable
 
 } from "./modelisation";
 

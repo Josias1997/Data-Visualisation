@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { connect } from "react-redux";
 import { options } from '../../../utility/settings';
-import { createJsonData } from '../../../utility/utility';
+import { createJsonData, convertToPDF, convertToJPEG, convertToPNG } from '../../../utility/utility';
 import MaterialTable from "material-table";
 import AlignCenter from "../../UI/AlignCenter/AlignCenter";
 import Matrix from "../../UI/Matrix/Matrix";
@@ -33,6 +33,7 @@ const MachineLearning = (props) => {
     const [yValue, setYValue] = useState('');
     const [xValue, setXValue] = useState('');
     const [algorithm, setAlgorithm] = useState('');
+    const toBeDownloaded = useRef(null);
 
     const handleAgorithmChange = (event) => {
         setAlgorithm(event.target.value);
@@ -53,7 +54,7 @@ const MachineLearning = (props) => {
 
     const predict = () => {
         const data = createJsonData(['id', 'x', 'y', 'algorithm'], [props.fileId, xValue, yValue, algorithm]);
-        props.onPredict(data);
+        props.onPredict(data, 'machine_learning');
     };
 
     const split = () => {
@@ -61,14 +62,27 @@ const MachineLearning = (props) => {
             const data = createJsonData(['id'], [props.fileId]);
             props.onSplitDataSet(data);
         }
-    }
+    };
+
+    const print = (type) => {
+        if( type === "jpeg") {
+            convertToJPEG(algorithm, toBeDownloaded.current);
+        }
+        else if (type === "pdf") {
+            convertToPDF(algorithm, toBeDownloaded.current);
+        }
+        else if (type === "png") {
+            convertToPNG(algorithm, toBeDownloaded.current);
+        }
+    };
+
 	return (
 		<MDBContainer>
 			{
 				props.fileId ? <>
 				 <AlignCenter>
                     <MDBCol col={12}>
-                        <Settings page="machine-learning" onFit={fit} onPredict={predict} onSplit={split}/>
+                        <Settings page="machine-learning" onPrint={print} onPredict={predict} onSplit={split}/>
                     </MDBCol>
                 </AlignCenter>
                 <MDBCol col={12}>
@@ -83,7 +97,8 @@ const MachineLearning = (props) => {
                     || algorithm === 'svc' || algorithm === 'k-svc' || algorithm === 'decision-tree-classification' 
                     || algorithm === 'naives-bayes' || algorithm === 'random-forest-classification' || algorithm === 'k-means-cluster' ||
                     algorithm === 'hierarchical-cluster' || algorithm === 'lda' || algorithm === 'pca' || 
-                                    algorithm === 'kpca') 
+                                    algorithm === 'kpca' || algorithm === 'fp-growth' || algorithm === 'apriori' || algorithm === 'thompson-sampling'
+                    || algorithm === 'upper-confidence-bound') 
                     ? null : <>
                         <FormControl className={classes.formControl}>
                         <InputLabel id="independantVariable">X</InputLabel>
@@ -138,6 +153,10 @@ const MachineLearning = (props) => {
                             <MenuItem value={'lda'}>Linear Discriminant Analysis</MenuItem>
                             <MenuItem value={'pca'}>Principal Component Analysis</MenuItem>
                             <MenuItem value={'kpca'}>Kernel PCA</MenuItem>
+                            <MenuItem value={'fp-growth'}>FP-Growth</MenuItem>
+                            <MenuItem value={'apriori'}>A priori</MenuItem>
+                            <MenuItem value={'thompson-sampling'}>Thompson Sampling</MenuItem>
+                            <MenuItem value={'upper-confidence-bound'}>Upper Confidence Bound</MenuItem>
 
                         </Select>
                     </FormControl>
@@ -173,7 +192,7 @@ const MachineLearning = (props) => {
                             </>
                         } 
 
-                        <div className="container" style={{
+                        <div className="container" ref={toBeDownloaded} id="to-be-downloaded" style={{
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
@@ -243,11 +262,9 @@ const MachineLearning = (props) => {
                         }
                         {
                             algorithm === 'logistic-regression' ? <>
-                                <h3>Confusion Matrix</h3>
                                 <div className=" mt-2 container justify-content-center">
                                     {props.confusionMatrix !== undefined ? <Matrix matrix={props.confusionMatrix} /> : null}
                                 </div>
-                                <h3 className="mt-3">Confusion Matrix Plot</h3><br />
                                 <div className="col-md-12 d-flex justify-content-center">
                                     <img src={props.matrixPlot} alt="Confusion Matrix"/>
                                 </div>
@@ -258,7 +275,6 @@ const MachineLearning = (props) => {
                                         fontWeight: 'bold'
                                     }}>{props.report}</span>
                                 </div>
-                                <h3 className="mt-5">Courbe ROC</h3>
                                 <div className="col-md-12">
                                     <img src={props.courbeRoc} alt="Confusion Matrix"/>
                                 </div>
@@ -277,15 +293,12 @@ const MachineLearning = (props) => {
                             algorithm === 'k-nearest-neighbors' || algorithm === 'svc' || algorithm == 'k-svc' 
                             || algorithm === 'decision-tree-classification' || algorithm === 'naives-bayes' || algorithm === 'random-forest-classification' 
                             ? <>
-                                <h3>Confusion Matrix</h3>
                                 <div className=" mt-2 container justify-content-center">
                                     {props.confusionMatrix !== undefined ? <Matrix matrix={props.confusionMatrix} /> : null}
                                 </div>
-                                <h3 className="mt-3">Confusion Matrix Plot</h3><br />
                                 <div className="col-md-12 d-flex justify-content-center">
                                     <img src={props.matrixPlot} alt="Confusion Matrix"/>
                                 </div>
-                                <h3 className="mt-5">Courbe ROC</h3>
                                 <div className="col-md-12">
                                     <img src={props.courbeRoc} alt="Confusion Matrix"/>
                                 </div>
@@ -311,11 +324,9 @@ const MachineLearning = (props) => {
                         }
                         {
                             algorithm === 'multiple-linear-regression' ? <>
-                            <h2>Valeurs réelles vs Valeurs prévues</h2>
                             <div className="col-md-12">
                                 <img src={props.seabornPlot} alt="Seaborn plot"/>
                             </div>
-                            <h2>Nuage de points</h2>
                             <div className="col-md-12">
                                 <img src={props.adminPlot} alt="Admin plot"/>
                             </div>
@@ -325,6 +336,26 @@ const MachineLearning = (props) => {
                             <div className="col-md-12">
                                 <img src={props.rdSpendPlot} alt="RD Spend plot"/>
                             </div>
+                            </> : null
+                        }
+                        {
+                            algorithm === 'fp-growth' || algorithm === 'apriori' ? <>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.supportConfidence} alt="Confusion Matrix"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.supportLift} alt="Train set plot"/>
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.liftConfidence} alt="Test set plot" />
+                                </div>
+                            </> : null
+                        }
+                        {
+                            algorithm === 'thompson-sampling' || algorithm === 'upper-confidence-bound' ? <>
+                                 <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.histogram} alt="Decision Tree Graph"/>
+                                </div>
                             </> : null
                         }
                         </div>
@@ -404,13 +435,17 @@ const mapStateToProps = state => {
         clusters: state.machine_learning.clusters,
         elbowGraph: state.machine_learning.elbowGraph,
         dendrogramGraph: state.machine_learning.dendrogramGraph,
+        histogram: state.machine_learning.histogram,
+        supportConfidence: state.machine_learning.supportConfidence,
+        supportLift: state.machine_learning.supportLift,
+        liftConfidence: state.machine_learning.liftConfidence,
 	}
 };
 
 const mapDispatchToProps = dispatch => {
     return {
         onFit: (data) => dispatch(fit(data)),
-        onPredict: (data) => dispatch(predict(data)),
+        onPredict: (data, from) => dispatch(predict(data, from)),
         onSplitDataSet: (data) => dispatch(splitDataSet(data)),
         updateData: data => dispatch(updateDataSuccess(data))
     }

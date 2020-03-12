@@ -8,6 +8,8 @@ import statisticsReducer from './store/reducers/statistics';
 import testsReducer from './store/reducers/tests';
 import modelisationReducer from './store/reducers/modelisation';
 import machineLearningReducer from './store/reducers/machine_learning';
+import deepLearningReducer from './store/reducers/deep_learning';
+import textMiningReducer from './store/reducers/text_mining';
 import { Provider } from 'react-redux';
 import { createStore, compose, applyMiddleware, combineReducers } from 'redux';
 import thunk from 'redux-thunk';
@@ -20,6 +22,8 @@ let rootReducer = combineReducers({
 	tests: testsReducer,
 	modelisation: modelisationReducer,
 	machine_learning: machineLearningReducer,
+	deep_learning: deepLearningReducer,
+	text_mining: textMiningReducer,
 });
 
 const composeEnhancers = process.env.NODE_ENV === 'development' ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ : null || compose;

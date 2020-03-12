@@ -28,6 +28,12 @@ export const preprocessingFail = (error) => {
 	}
 };
 
+export const resetTable = () => {
+	return {
+		type: actionTypes.RESET_TABLE
+	}
+};
+
 export const splitDataSet = (data) => {
 	return dispatch => {
 		dispatch(startPreprocessing());
@@ -39,6 +45,7 @@ export const splitDataSet = (data) => {
 		})
 	}
 };
+
 
 export const normalize = (data) => {
 	return dispatch => {

@@ -1,0 +1,4 @@
+div.add img:hover {
+    webkit-filter: grayscale(50%);
+    filter: grayscale(50%);
+}

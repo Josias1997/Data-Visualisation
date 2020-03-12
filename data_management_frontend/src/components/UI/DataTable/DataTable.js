@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { updateDataSuccess } from '../../../store/actions';
 import { options, localization } from '../../../utility/settings';
 
-const DataTable = ({loading, data, name, path, updateData}) => {
+const DataTable = ({loading, data, name, updateData}) => {
     const addRow = (newData) => {
         return new Promise((resolve, reject) => {
             setTimeout(() => {

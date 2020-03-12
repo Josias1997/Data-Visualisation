@@ -29,7 +29,6 @@ const initialState = {
 	supportLift: '',
 	liftConfidence: '',
 	histogram: '',
-
 }
 
 const processingStart = (state) => {
@@ -84,11 +83,11 @@ const processingFail = (state, action) => {
 
 const reducer = (state = initialState, action) => {
 	switch(action.type) {
-		case actionTypes.PROCESSING_START:
+		case actionTypes.PROCESSING_START_MACHINE_LEARNING:
 			return processingStart(state);
 		case actionTypes.FIT_SUCCESS:
 			return fitSuccess(state, action);
-		case actionTypes.PREDICT_SUCCESS:
+		case actionTypes.PREDICT_SUCCESS_MACHINE_LEARNING:
 			return predictSuccess(state, action);
 		case actionTypes.PROCESSING_FAIL:
 			return processingFail(state, action);

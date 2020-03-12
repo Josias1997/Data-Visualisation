@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
+import Input from '@material-ui/core/Input';
 import Select from '@material-ui/core/Select';
 import Chips from "react-chips";
 import axios from "../../../instanceAxios";
@@ -30,12 +31,22 @@ const Plot = ({ fileId, data }) => {
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const [columnsColors, setColumnsColors] = useState(data.columns.map(column => {
+        return {
+            id: column.field,
+            value: '#000000',
+        }
+    }));
+
     useEffect(() => {
         plot();
-    }, [columns, plotType, xValue]);
+    }, [columns, plotType, xValue, columnsColors]);
 
     const plot = () => {
-        const data = createJsonData(['id', 'x', 'columns', 'kind'], [fileId, xValue, columns, plotType]);
+        let colors = columnsColors.filter(column => columns.indexOf(column.id) !== -1);
+        colors = colors.map(color => color.value);
+        const data = createJsonData(['id', 'x', 'columns', 'kind', 'y_colors'], 
+            [fileId, xValue, columns, plotType, colors]);
         setLoading(true);
         axios.post('/api/plot/', data)
         .then(response => {
@@ -47,6 +58,20 @@ const Plot = ({ fileId, data }) => {
             setLoading(false);
         })
     };
+    const handleColumnsColorChange = event => {
+        setColumnsColors(current => {
+            const newArray = [...current];
+            let index = newArray.findIndex(color => color.id === event.target.id);
+            if (index === -1) {
+                return;
+            } else {
+               newArray[index].value = event.target.value;
+            }
+            console.log(newArray);
+            return newArray; 
+        })
+    };
+
     const handleChange = event => {
         setPlotType(event.target.value);
     };
@@ -60,9 +85,7 @@ const Plot = ({ fileId, data }) => {
 
     let content = null;
     if (plotPath !== '') {
-        content = <img src={plotPath} style={{
-            width: '700px'
-        }} />
+        content = <img src={plotPath}/>
     } else if (error) {
         content = <Alert>
             {error}
@@ -70,6 +93,7 @@ const Plot = ({ fileId, data }) => {
     }
     return (
         <div className="row d-flex justify-content-center">
+            <label>Set Y Value</label>
             <div className="col-md-12">
                 <Chips
                     value={columns}
@@ -77,6 +101,16 @@ const Plot = ({ fileId, data }) => {
                     suggestions={[...mapDataColumns(data.columns)]}
 
                 />
+            </div>
+            <div className="col-md-12">
+                <div className="row">
+                {
+                    columns.map(column => <Input style={{
+                        width: column.length >= 9 ? '100px' : '50px',
+                        marginLeft: '14px'
+                    }} key={column} onChange={handleColumnsColorChange} type="color" id={column} />)
+                }
+                </div>
             </div>
             <div className="row d-flex justify-content-center">
                 <div className="col-md-6 d-flex justify-content-center">
@@ -88,13 +122,18 @@ const Plot = ({ fileId, data }) => {
                             value={plotType}
                             onChange={handleChange}
                             >
-                            <MenuItem value={'bar'}>Bar</MenuItem>
-                            <MenuItem value={'hist'}>Histogram</MenuItem>
-                            <MenuItem value={'box'}>Box</MenuItem>
-                            <MenuItem value={'kde'}>KDE</MenuItem>
-                            <MenuItem value={'area'}>Area</MenuItem>
+                            <MenuItem value={'barh'}>Bar Chart Horizontal</MenuItem>
+                            <MenuItem value={'bar'}>Bar Chart Vertical</MenuItem>
+                            <MenuItem value={'hist'}>Bar Histogram</MenuItem>
+                            <MenuItem value={'area'}>Stacked Area</MenuItem>
+                            <MenuItem value={'box'}>Box plot</MenuItem>
+                            <MenuItem value={'pie'}>Pie Chart</MenuItem>
+                            <MenuItem value={'line'}>Line Chart</MenuItem>
                             <MenuItem value={'scatter'}>Scatter</MenuItem>
-                            <MenuItem value={'pie'}>Pie</MenuItem>
+                            <MenuItem value={'kde'}>KDE</MenuItem>
+                            <MenuItem value={'correlogram'}>Correlogram</MenuItem>
+                            <MenuItem value={'density-plot'}>Density Plot</MenuItem>
+                            <MenuItem value={'treemap'}>Treemap</MenuItem>
                         </Select>
                     </FormControl>
                 </div>

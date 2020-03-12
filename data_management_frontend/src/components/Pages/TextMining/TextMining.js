@@ -53,7 +53,7 @@ const MachineLearning = (props) => {
 
     const predict = () => {
         const data = createJsonData(['id', 'x', 'y', 'algorithm'], [props.fileId, xValue, yValue, algorithm]);
-        props.onPredict(data);
+        props.onPredict(data, 'text_mining');
     };
 
     const split = () => {
@@ -78,12 +78,7 @@ const MachineLearning = (props) => {
                 </MDBCol>
                 <div className="container justify-content-center mt-5 mb-3">
                 {
-                    (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr'
-                    || algorithm === 'decision-tree-regressor' || algorithm === 'random-forest-regression' || algorithm === 'k-nearest-neighbors'
-                    || algorithm === 'svc' || algorithm === 'k-svc' || algorithm === 'decision-tree-classification' 
-                    || algorithm === 'naives-bayes' || algorithm === 'random-forest-classification' || algorithm === 'k-means-cluster' ||
-                    algorithm === 'hierarchical-cluster' || algorithm === 'lda' || algorithm === 'pca' || 
-                                    algorithm === 'kpca') 
+                    (algorithm === 'sentimental-analysis') 
                     ? null : <>
                         <FormControl className={classes.formControl}>
                         <InputLabel id="independantVariable">X</InputLabel>
@@ -121,24 +116,7 @@ const MachineLearning = (props) => {
                             value={algorithm}
                             onChange={handleAgorithmChange}
                             >
-                            <MenuItem value={'linear-regression'}>Linear Regression</MenuItem>
-                            <MenuItem value={'multiple-linear-regression'}>Multiple Linear Regression</MenuItem>
-                            <MenuItem value={'logistic-regression'}>Logistic Regression</MenuItem>
-                            <MenuItem value={'svr'}>SVR</MenuItem>
-                            <MenuItem value={'decision-tree-regressor'}>Decision Tree Regression</MenuItem>
-                            <MenuItem value={'random-forest-regression'}>Random Forest Regression</MenuItem>
-                            <MenuItem value={'k-nearest-neighbors'}>K-Nearest Neigbors</MenuItem>
-                            <MenuItem value={'svc'}>Support Vector Machine</MenuItem>
-                            <MenuItem value={'k-svc'}>Kernel Support Vector Machine</MenuItem>
-                            <MenuItem value={'decision-tree-classification'}>Decision Tree Classification</MenuItem>
-                            <MenuItem value={'naives-bayes'}>Naives Bayes</MenuItem>
-                            <MenuItem value={'random-forest-classification'}>Random Forest Classification</MenuItem>
-                            <MenuItem value={'k-means-cluster'}>K-Means Cluster</MenuItem>
-                            <MenuItem value={'hierarchical-cluster'}>Hierarchical Cluster</MenuItem>
-                            <MenuItem value={'lda'}>Linear Discriminant Analysis</MenuItem>
-                            <MenuItem value={'pca'}>Principal Component Analysis</MenuItem>
-                            <MenuItem value={'kpca'}>Kernel PCA</MenuItem>
-
+                            <MenuItem value={'sentimental-analysis'}>Sentimental Analysis</MenuItem>
                         </Select>
                     </FormControl>
                 </div>
@@ -147,13 +125,7 @@ const MachineLearning = (props) => {
                      <div className="container col-md-12 justify-content-center mt-5 mb-3">
                     {
                         props.predicted ? <> {
-                            (algorithm === 'multiple-linear-regression' || algorithm === 'logistic-regression' || algorithm === 'svr'
-                                 || algorithm === 'decision-tree-regressor' || algorithm === 'random-forest-regression' 
-                                 || algorithm === 'k-nearest-neighbors' || algorithm === 'svc' || algorithm === 'k-svc' || 
-                                 algorithm === 'decision-tree-classification' || algorithm === 'naives-bayes' 
-                                 || algorithm === 'random-forest-classification' || algorithm === 'k-means-cluster' ||
-                                    algorithm === 'hierarchical-cluster' || algorithm === 'lda' || algorithm === 'pca' || 
-                                    algorithm === 'kpca') 
+                            (algorithm === 'sentimental-analysis') 
                             ? null : <>
                             <table className="table table-stripped">
                         <thead>
@@ -180,151 +152,47 @@ const MachineLearning = (props) => {
                             justifyContent: 'center',
                         }}>
                         {
-                            algorithm === 'random-forest-regression' ? <>
-                                 <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.randomForestRegressionGraph} alt="Random Forest Graph"/>
-                                </div>
-                            </> : null
-                        }
-                        {
-                            algorithm === 'decision-tree-regressor' ? <>
-                                 <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.decisionTreeGraphImg} alt="Decision Tree Graph"/>
-                                </div>
-                            </> : null
-                        }
-                        {
-                                algorithm === 'lda' || algorithm === 'pca' || algorithm === 'kpca' ? <>
-                                <h3>Confusion Matrix</h3>
-                                <div className=" mt-2 container justify-content-center">
-                                    {props.confusionMatrix !== undefined ? <Matrix matrix={props.confusionMatrix} /> : null}
-                                </div>
-                                <h3 className="mt-3">Confusion Matrix Plot</h3><br />
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.matrixPlot} alt="Confusion Matrix"/>
-                                </div>
-                                <div className="col-md-12">
-                                    <img src={props.trainPlotPath} alt="Train set plot"/>
-                                </div>
-                                <div className="col-md-12">
-                                    <img src={props.testPlotPath} alt="Test set plot" />
-                                </div>
-                            </> : null
-                        }
-                        {
-                            algorithm === 'svr' ? <>
-                                 <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.svrResults} alt="SVR Results"/>
-                                </div>
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.svrResultsHR} alt="SVR Results with higher resolution" />
-                                </div>
-                            </> : null
-                        }
-                        {
-                            algorithm === 'k-means-cluster' ? <>
-                                 <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.elbowGraph} alt="Elbow Graph"/>
-                                </div>
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.clusters} alt="Clusters" />
-                                </div>
-                            </> : null
-                        }
-                        {
-                            algorithm === 'hierarchical-cluster' ? <>
-                                 <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.dendrogramGraph} alt="Dendrogram"/>
-                                </div>
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.clusters} alt="Clusters" />
-                                </div>
-                            </> : null
-                        }
-                        {
-                            algorithm === 'logistic-regression' ? <>
-                                <h3>Confusion Matrix</h3>
-                                <div className=" mt-2 container justify-content-center">
-                                    {props.confusionMatrix !== undefined ? <Matrix matrix={props.confusionMatrix} /> : null}
-                                </div>
-                                <h3 className="mt-3">Confusion Matrix Plot</h3><br />
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.matrixPlot} alt="Confusion Matrix"/>
-                                </div>
-                                <h3 className="mt-3">Classification report</h3>
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <span style={{
-                                        whiteSpace: 'pre-wrap',
-                                        fontWeight: 'bold'
-                                    }}>{props.report}</span>
-                                </div>
-                                <h3 className="mt-5">Courbe ROC</h3>
-                                <div className="col-md-12">
-                                    <img src={props.courbeRoc} alt="Confusion Matrix"/>
-                                </div>
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <h3>Score ROC : {props.scoreRoc}</h3>
-                                </div>
-                                <div className="col-md-12">
-                                    <img src={props.trainPlotPath} alt="Train set plot"/>
-                                </div>
-                                <div className="col-md-12">
-                                    <img src={props.testPlotPath} alt="Test set plot" />
-                                </div>
-                            </> : null
-                        }
-                        {
-                            algorithm === 'k-nearest-neighbors' || algorithm === 'svc' || algorithm == 'k-svc' 
-                            || algorithm === 'decision-tree-classification' || algorithm === 'naives-bayes' || algorithm === 'random-forest-classification' 
-                            ? <>
-                                <h3>Confusion Matrix</h3>
-                                <div className=" mt-2 container justify-content-center">
-                                    {props.confusionMatrix !== undefined ? <Matrix matrix={props.confusionMatrix} /> : null}
-                                </div>
-                                <h3 className="mt-3">Confusion Matrix Plot</h3><br />
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <img src={props.matrixPlot} alt="Confusion Matrix"/>
-                                </div>
-                                <h3 className="mt-5">Courbe ROC</h3>
-                                <div className="col-md-12">
-                                    <img src={props.courbeRoc} alt="Confusion Matrix"/>
-                                </div>
-                                <div className="col-md-12 d-flex justify-content-center">
-                                    <h3>Score ROC : {props.scoreRoc}</h3>
-                                </div>
-                                <div className="col-md-12">
-                                    <img src={props.trainPlotPath} alt="Train set plot"/>
-                                </div>
-                                <div className="col-md-12">
-                                    <img src={props.testPlotPath} alt="Test set plot" />
-                                </div>
-                            </> : null
-                        }
+                                algorithm === 'sentimental-analysis' ? <>
 
-                        {
-                            algorithm === 'linear-regression' ?  <> <div className="col-md-12">
-                                <img src={props.trainPlotPath} alt="Train set plot"/>
-                            </div>
-                            <div className="col-md-12">
-                                <img src={props.testPlotPath} alt="Test set plot" />
-                            </div></> : null
-                        }
-                        {
-                            algorithm === 'multiple-linear-regression' ? <>
-                            <h2>Valeurs réelles vs Valeurs prévues</h2>
-                            <div className="col-md-12">
-                                <img src={props.seabornPlot} alt="Seaborn plot"/>
-                            </div>
-                            <h2>Nuage de points</h2>
-                            <div className="col-md-12">
-                                <img src={props.adminPlot} alt="Admin plot"/>
-                            </div>
-                            <div className="col-md-12">
-                                <img src={props.marketingPlot} alt="Marketing plot" />
-                            </div>
-                            <div className="col-md-12">
-                                <img src={props.rdSpendPlot} alt="RD Spend plot"/>
-                            </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.retweets} alt="Confusion Matrix"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.languages_used} alt="Train set plot"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.original_authors_retweets} alt="Test set plot" />
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.correlation_matrix} alt="Confusion Matrix"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.tweets_by_month} alt="Train set plot"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.popular_hashtags_used} alt="Test set plot" />
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.hsh_wrds_trump} alt="Confusion Matrix"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.hsh_wrds_hillary} alt="Train set plot"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.popular_twitter_account_references} alt="Test set plot" />
+                                </div>
+                                <div className="col-md-12 d-flex justify-content-center">
+                                    <img src={props.acc_wrds_trump} alt="Confusion Matrix"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.acc_wrds_hillary} alt="Train set plot"/>
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.pop_wrds_trump} alt="Test set plot" />
+                                </div>
+                                <div className="col-md-12">
+                                    <img src={props.pop_wrds_hillary} alt="Test set plot" />
+                                </div>
                             </> : null
                         }
                         </div>
@@ -380,37 +248,46 @@ const mapStateToProps = state => {
 		loading: state.fileUpload.loading,
 		trainingSet: state.modelisation.trainingSet,
 		testSet: state.modelisation.testSet,
-        processing: state.machine_learning.loading,
+        processing: state.text_mining.loading,
         fitResult: state.machine_learning.fitResult,
         predictResult: state.machine_learning.predictResult,
-        predicted: state.machine_learning.predicted,
-        trainPlotPath: state.machine_learning.trainPlotPath,
-        testPlotPath: state.machine_learning.testPlotPath,
-        xTest: state.machine_learning.xTest,
+        predicted: state.text_mining.predicted,
         splitProcessing: state.modelisation.processing,
-        seabornPlot: state.machine_learning.seabornPlot,
-        adminPlot: state.machine_learning.adminPlot,
-        rdSpendPlot: state.machine_learning.rdSpendPlot,
-        marketingPlot: state.machine_learning.marketingPlot,
-        confusionMatrix: state.machine_learning.confusionMatrix,
-        matrixPlot: state.machine_learning.matrixPlot,
-        report: state.machine_learning.report,
-        courbeRoc: state.machine_learning.courbeRoc,
-        scoreRoc: state.machine_learning.scoreRoc,
-        svrResults: state.machine_learning.svrResults,
-        svrResultsHR: state.machine_learning.svrResultsHR,
-        decisionTreeGraphImg: state.machine_learning.decisionTreeGraphImg,
-        randomForestRegressionGraph: state.machine_learning.randomForestRegressionGraph,
-        clusters: state.machine_learning.clusters,
-        elbowGraph: state.machine_learning.elbowGraph,
-        dendrogramGraph: state.machine_learning.dendrogramGraph,
+        retweets: state.text_mining.retweets,
+        languages_used: state.text_mining.languages_used,
+        original_authors_retweets: state.text_mining.original_authors_retweets,
+        tweets_by_month: state.text_mining.tweets_by_month,
+        correlation_matrix: state.text_mining.correlation_matrix,
+        popular_hashtags_used: state.text_mining.popular_hashtags_used,
+        hsh_wrds_trump: state.text_mining.hsh_wrds_trump,
+        hsh_wrds_hillary: state.text_mining.hsh_wrds_hillary,
+        popular_twitter_account_references: state.text_mining.popular_twitter_account_references,
+        acc_wrds_trump: state.text_mining.acc_wrds_trump,
+        acc_wrds_hillary: state.text_mining.acc_wrds_hillary,
+        pop_wrds_trump: state.text_mining.pop_wrds_trump,
+        pop_wrds_hillary: state.text_mining.pop_wrds_hillary,
+        popular_negative_words: state.text_mining.popular_negative_words,
+        pw_trump: state.text_mining.pw_trump,
+        pw_hillary: state.text_mining.pw_hillary,
+        nw_trump: state.text_mining.nw_trump,
+        nw_hillary: state.text_mining.nw_hillary,
+        sentiment_of_tweets: state.text_mining.sentiment_of_tweets,
+        average_retweets: state.text_mining.average_retweets,
+        classifier_trump: state.text_mining.classifier_trump,
+        classifier_hillary: state.text_mining.classifier_hillary,
+        tweets_trump: state.text_mining.tweets_trump,
+        tweets_hillary: state.text_mining.tweets_hillary,
+        log_reg_trump: state.text_mining.log_reg_trump,
+        log_reg_hillary: state.text_mining.log_reg_hillary ,
+        svm_trump: state.text_mining.svm_trump,
+        svm_hillary: state.text_mining.svm_hillary,
 	}
 };
 
 const mapDispatchToProps = dispatch => {
     return {
         onFit: (data) => dispatch(fit(data)),
-        onPredict: (data) => dispatch(predict(data)),
+        onPredict: (data, from) => dispatch(predict(data, from)),
         onSplitDataSet: (data) => dispatch(splitDataSet(data)),
         updateData: data => dispatch(updateDataSuccess(data))
     }

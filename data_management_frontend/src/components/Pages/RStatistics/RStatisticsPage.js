@@ -8,6 +8,7 @@ import StaticticsTable from '../../UI/StatisticsTable/StaticticsTable';
 import Plot from '../../UI/Plot/Plot';
 import Tests from '../../UI/Tests/Tests';
 import Spinner from '../../UI/Spinner/Spinner';
+import DataTable from '../../UI/DataTable/DataTable';
 
 const RStatisticsPage = props => {
     let content = null;
@@ -19,6 +20,9 @@ const RStatisticsPage = props => {
     }
     else if (props.openTests) {
         content = <Tests />
+    }
+    else if (props.openStats) {
+        content = <DataTable />
     }
     return (
         <MDBContainer>
@@ -57,6 +61,7 @@ const mapStateToProps = state => {
         openPlot: state.statistics.openPlot,
         openTable: state.statistics.openTable,
         openTests: state.statistics.openTests,
+        openStats: state.statistics.openStats,
         loading: state.fileUpload.loading,
     }
 };

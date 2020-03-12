@@ -10,6 +10,7 @@ urlpatterns = [
 	path('execute-query/', views.execute_query, name="query"),
 	path('filter-columns/', views.filter_by_columns, name="filter-column"),
 	path('login/', views.login, name='login'),
+	path('signup/', views.sign_up, name='signup'),
 	path('plot/', views.plot, name='plot'),
 	path('stats/', views.stats, name='stats'),
 	path('fisher-test/', views.fisher_test, name="fisher_exact"),
@@ -18,4 +19,9 @@ urlpatterns = [
 	path('preprocessing/', views.preprocessing, name="preprocessing"),
 	path('fit-data-set/', views.fit, name='fit-data-set'),
 	path('predict-data-set/', views.predict, name='predict-data-set'),
+	path('reset/', views.reset),
+	path('info/', views.info),
+	path('plot-files/', views.plot_files),
+	path('upload-plot-files/', views.upload_plots_files),
+	path('delete-files/', views.delete_plot_files)
 ]

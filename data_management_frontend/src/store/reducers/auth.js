@@ -2,6 +2,7 @@ import * as actionTypes from '../actions/actionTypes';
 import { updateObject } from '../../utility/utility';
 
 const initialState = {
+	appState: 'login',
 	token: null,
 	error: null,
 	loading: false,
@@ -36,6 +37,16 @@ const authLogOut = (state, action) => {
 	})
 };
 
+const login = (state, action) => {
+	return updateObject(state, initialState)
+}
+
+const register = (state, action) => {
+	return updateObject(state, {
+		appState: 'register'
+	})
+}
+
 const reducer = (state=initialState, action) => {
 	switch(action.type) {
 		case actionTypes.AUTH_START:
@@ -46,6 +57,10 @@ const reducer = (state=initialState, action) => {
 			return authFail(state, action);
 		case actionTypes.AUTH_LOGOUT:
 			return authLogOut(state, action);
+		case actionTypes.LOGIN_STATE:
+			return login(state, action);
+		case actionTypes.REGISTER_STATE:
+			return register(state, action);
 		default:
 			return state;
 	}

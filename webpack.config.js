@@ -17,7 +17,7 @@ module.exports = {
 				}
 			},
 			{
-				test: /\.txt$/,
+				test: /\.(txt|svg|ttf|gif|jpe?g|woff2?|eot)$/,
 				use: {
 					loader: 'file-loader',
 				}
