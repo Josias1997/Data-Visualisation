@@ -35,3 +35,10 @@ export const openDashboard = () => {
         type: actionTypes.OPEN_DASHBOARD
     }
 };
+
+export const addPlot = (plotPath) => {
+    return {
+        type: actionTypes.ADD_PLOT,
+        plotPath: plotPath
+    };
+};

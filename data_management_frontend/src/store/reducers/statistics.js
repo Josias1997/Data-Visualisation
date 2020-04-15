@@ -7,7 +7,8 @@ const initialState = {
     openTests: false,
     openStats: false,
     openStorytelling: false,
-    openDashboard: false
+    openDashboard: false,
+    plots: [],
 };
 
 const openPlot = (state) => {
@@ -69,6 +70,14 @@ const openDashboard = (state) => {
     })
 }
 
+const addPlot = (state, action) => {
+    const plots = [...state.plots];
+    plots.push(action.plotPath);
+    return updateObject(state, {
+        plots: plots
+    })
+};
+
 
 
 const reducer = (state = initialState, action) => {
@@ -85,6 +94,8 @@ const reducer = (state = initialState, action) => {
             return openStorytelling(state);
         case actionTypes.OPEN_DASHBOARD:
             return openDashboard(state);
+        case actionTypes.ADD_PLOT:
+            return addPlot(state, action);
         default:
             return state;
     }

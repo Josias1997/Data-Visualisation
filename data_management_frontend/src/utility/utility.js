@@ -1,6 +1,7 @@
 import axios from '../instanceAxios';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { NotificationManager } from 'react-notifications';
 
 export const updateObject = (oldObject, updatedProperties) => {
 	return {
@@ -99,4 +100,21 @@ export const convertToPNG = (algorithm, element) => {
 				saveAs(imageData, `results-${algorithm}.png`);
 
 	})
+};
+
+export const createNotification = (type, message, title = 'Notification') => {
+	switch(type) {
+		case 'success':
+			NotificationManager.success(message, title);
+			break;
+		case 'info':
+			NotificationManager.info(message);
+			break;
+		case 'warning':
+			NotificationManager.warning(message, title, 5000);
+			break;
+		case 'error':
+			NotificationManager.error(message, title, 5000);
+			break
+	}
 };

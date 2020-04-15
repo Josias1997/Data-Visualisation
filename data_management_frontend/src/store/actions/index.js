@@ -40,6 +40,7 @@ export {
     openStats,
     openStorytelling,
     openDashboard,
+    addPlot
 } from './statistics';
 
 export {

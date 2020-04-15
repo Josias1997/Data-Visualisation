@@ -21,6 +21,12 @@ export const authFail = error => {
 	}
 };
 export const logout = () => {
+    axios.delete('/api/delete-files/')
+    .then(({data}) => {
+        console.log(data);
+    }).catch(error => {
+        console.log(error);
+    })
 	localStorage.removeItem('token');
 	localStorage.removeItem('expirationDate');
 	return {

@@ -27,6 +27,7 @@ export const OPEN_TESTS = 'OPEN_TESTS';
 export const OPEN_STATS = 'OPEN_STATS';
 export const OPEN_STORYTELLING = 'OPEN_STORYTELLING';
 export const OPEN_DASHBOARD = 'OPEN_DASHBOARD';
+export const ADD_PLOT = 'ADD_PLOT';
 
 export const TEST_START = 'TEST_START';
 export const TEST_SUCCESS = 'TEST_SUCCESS';

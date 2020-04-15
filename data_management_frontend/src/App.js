@@ -7,18 +7,12 @@ import * as actions from './store/actions/auth';
 import { BrowserRouter as Router } from 'react-router-dom';
 import Routes from './components/Routes/Routes.js';
 import axios from './instanceAxios';
+import 'react-notifications/lib/notifications.css';
 
 const App = props => {
 
 	useEffect(() => {
 		props.onTryAutoSignIn();
-
-		return () => {
-			console.log('UNMOUNT');
-			axios.delete('/api/delete-files/')
-				.then(({data}) => console.log(data))
-				.catch(err => console.log(err));
-		}
 	}, []);
 
 	return (

@@ -23,5 +23,6 @@ urlpatterns = [
 	path('info/', views.info),
 	path('plot-files/', views.plot_files),
 	path('upload-plot-files/', views.upload_plots_files),
+	path('delete-plot-file/<int:pk>', views.delete_plot_file),
 	path('delete-files/', views.delete_plot_files)
 ]

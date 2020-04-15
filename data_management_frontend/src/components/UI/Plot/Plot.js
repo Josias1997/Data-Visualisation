@@ -9,6 +9,7 @@ import Chips from "react-chips";
 import axios from "../../../instanceAxios";
 import { connect } from "react-redux";
 import { createJsonData, mapDataColumns } from '../../../utility/utility';
+import { addPlot } from '../../../store/actions';
 import Spinner from '../Spinner/Spinner';
 import Alert from '../Alert/Alert';
 
@@ -22,7 +23,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const Plot = ({ fileId, data }) => {
+const Plot = ({ fileId, data, onAddPlot }) => {
     const classes = useStyles();
     const [columns, setColumns] = useState(mapDataColumns(data.columns));
     const [plotType, setPlotType] = useState('bar');
@@ -49,9 +50,11 @@ const Plot = ({ fileId, data }) => {
             [fileId, xValue, columns, plotType, colors]);
         setLoading(true);
         axios.post('/api/plot/', data)
-        .then(response => {
-            setPlotPath(response.data.plot);
-            setError(response.data.error);
+        .then(({data}) => {
+            if (data.plot !== '') {
+                onAddPlot(data.plot);
+            }
+            setPlotPath(data.plot);
             setLoading(false);
         }).catch(error => {
             setError(error.message);
@@ -169,4 +172,10 @@ const mapStateToProps = state => {
     }
 };
 
-export default connect(mapStateToProps)(Plot);
+const mapDispatchToProps = dispatch => {
+    return {
+        onAddPlot: path => dispatch(addPlot(path))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Plot);

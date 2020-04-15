@@ -475,18 +475,38 @@ def upload_plots_files(request):
     file = PlotFile(file=request.data['file'])
     file.save()
     files = PlotFile.objects.all()
-    urls = [file.file.url for file in files]
+    files_details = []
+    for file in files:
+        files_details.append({
+            'id': file.id,
+            'url': file.file.url
+        })
     return Response({
-        'urls': urls
+        'files': files_details
     })
 
 
 @api_view(['GET'])
 def plot_files(request):
     files = PlotFile.objects.all()
-    urls = [file.file.url for file in files]
+    files_details = []
+    for file in files:
+        files_details.append({
+            'id': file.id,
+            'url': file.file.url
+        })
     return Response({
-        'urls': urls
+        'files': files_details
+    })
+
+
+@api_view(['DELETE'])
+def delete_plot_file(request, pk):
+    file = PlotFile.objects.get(id=pk)
+    file.delete()
+    return Response({
+        'id': pk,
+        'message': 'success'
     })
 
 

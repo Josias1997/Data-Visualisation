@@ -30,6 +30,7 @@ const Form = ({file, changeHandler, onSendFileHandler, error}) => {
                     id="inputGroupFile01"
                     aria-describedby="inputGroupFileAddon01"
                     onChange={changeHandler}
+                    accept=".csv, .xslx, .xls"
                 />
                 <label className="custom-file-label" htmlFor="inputGroupFile01">
                     Parcourir

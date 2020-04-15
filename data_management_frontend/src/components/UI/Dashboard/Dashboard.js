@@ -4,20 +4,26 @@ import './Dashboard.css';
 import axios from './../../../instanceAxios';
 import Spinner from './../Spinner/Spinner';
 import AlignCenter from './../AlignCenter/AlignCenter';
+import { connect } from 'react-redux';
+import { createNotification } from './../../../utility/utility';
+import { NotificationContainer } from 'react-notifications';
+import { MDBCardGroup, MDBCard, MDBCardImage, MDBCardBody } from 'mdbreact';
 
 const Dashboard = (props) => {
     const el = useRef(null);
     const [fileToUpload, setFileToUpload] = useState('');
     const [currentFilesUrls, setCurrentFilesUrls] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         axios.get('/api/plot-files/')
             .then(({data}) => {
-                setCurrentFilesUrls(data.urls);
+                setCurrentFilesUrls(data.files);
             }).catch(err => {
-                console.log(err);
-        });
+                setError(err.message);
+                createNotification(err.message, 'Error');
+            });
     }, []);
 
     const handleChange = (event) => {
@@ -25,15 +31,11 @@ const Dashboard = (props) => {
         upload(event.target.files[0]);
     };
     let style = {
-        border: '1px solid black',
-        borderRadius: '30px',
-        width: '300px',
-        height: '250px',
-        cursor: 'pointer',
-        background: 'rgba(0, 0, 0, 0.3)',
-        ':hover': {
-            background: 'gray'
-        }  
+        borderRadius: '10px',
+        width: '100px',
+        height: '150px',
+        marginLeft: '70px',
+        cursor: 'pointer'
     };
 
     const handleDragEnter = (event) => {
@@ -68,27 +70,44 @@ const Dashboard = (props) => {
         setLoading(true);
         axios.post('/api/upload-plot-files/', data)
             .then(({data}) => {
-                setCurrentFilesUrls(data.urls);
+                setCurrentFilesUrls(data.files);
                 setLoading(false);
             }).catch(err => {
-                console.log(err);
-        })
+                setError(err.message);
+                createNotification(err.message, 'Error');
+            })
     };
+    const deleteFile = id => {
+        setLoading(true);
+        axios.delete(`/api/delete-plot-file/${id}`)
+        .then(({data}) => {
+            setCurrentFilesUrls(current => {
+                const index = current.findIndex(file => file.id === id);
+                if (index !== -1) {
+                    const currentFiles = [...current];
+                    currentFiles.splice(index, 1);
+                    return currentFiles;
+                }
+                return current;
+            })
+        }).catch(err => {
+            setError(err.message);
+            createNotification(err.message, 'Error');
+        })
+    }
 
     return (
-        <div className="col-md-12" style={{
-            border: '1px solid black',
-            padding: '20px',
-            borderRadius: '20px'
-        }}>
-            <div className="row">
+        <div className="col-md-12">
+        <MDBCardGroup>
             {
-                currentFilesUrls.map(url => <div className="col-md-4 mt-3"><img src={url} alt="" style={{
-                    width: '300px',
-                    height: '300px'
-                }}/></div>)
+                props.plots.map(plot => <div className="col-md-4"><MDBCard><MDBCardImage src={plot} alt="" top hover overlay={"white-slight"}/></MDBCard></div>)
             }
-             <div className="col-md-4 mt-3" >
+            {
+                currentFilesUrls.map(file => <div className="col-md-4"><MDBCard><MDBCardImage src={file.url} alt="" top hover overlay={"white-slight"}/></MDBCard></div>)
+            }
+            <div className="col-md-4">
+             <MDBCard>
+                <MDBCardBody>
                 {
                     loading ? <Spinner /> :
                     <><label htmlFor="add-file" style={style} ref={el}>
@@ -97,22 +116,31 @@ const Dashboard = (props) => {
                             onDragOver={handleDragOver}
                             onDrop={handleDrop}
                             style={{
-                                position: 'absolute',
-                                top: '20%',
-                                left: '33%',
                                 fontWeight: 'bold',
                                 fontSize: '100px',
-                                color: 'white'
+                                color: '#2bbbad',
+                                ':hover': {
+                                    fontSize: '120px'
+                                }
                         }}><i className="fas fa-plus"></i></p>
                     </label></>
                 }
                     <input id="add-file" className="mt-5" type="file" onChange={handleChange} accept="image/*" style={{
                         display: "none"
                     }} />
-                </div>
+                </MDBCardBody>
+            </MDBCard>
             </div>
+            <NotificationContainer />
+        </MDBCardGroup>
         </div>
     )
 };
 
-export default Radium(Dashboard);
+const mapStateToProps = state => {
+    return {
+        plots: state.statistics.plots
+    }
+}
+
+export default connect(mapStateToProps)(Radium(Dashboard));

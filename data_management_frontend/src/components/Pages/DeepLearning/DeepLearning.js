@@ -239,7 +239,6 @@ const mapStateToProps = state => {
         processing: state.deep_learning.loading,
         predicted: state.deep_learning.predicted,
         splitProcessing: state.modelisation.processing,
-        matrixPlot: state.deep_learning.matrixPlot,
         confusionMatrix: state.deep_learning.confusionMatrix,
         stockPricePlot: state.deep_learning.stockPricePlot,
         lstmPlot: state.deep_learning.lstmPlot,

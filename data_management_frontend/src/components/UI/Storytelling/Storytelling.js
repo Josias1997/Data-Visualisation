@@ -5,12 +5,16 @@ import { MDBBtn, MDBIcon } from 'mdbreact';
 import { convertToPDF } from '../../../utility/utility';
 import jsPDF from 'jspdf';
 import axios from './../../../instanceAxios';
+import { connect } from 'react-redux';
+import { NotificationContainer } from 'react-notifications';
+import { createNotification } from './../../../utility/utility';
 
 
 
-const Storytelling = () => {
+const Storytelling = (props) => {
     const [data, setData] = useState('');
-    const [urls, setUrls] = useState([]);
+    const [files, setFiles] = useState([]);
+    const [error, setError] = useState(null);
     const node = useRef(null);
 
     const exportData = () => {
@@ -25,21 +29,29 @@ const Storytelling = () => {
     useEffect(() => {
         axios.get('/api/plot-files/')
             .then(({data}) => {
-                setUrls(data.urls);
+                setFiles(data.files);
             }).catch(err => {
-                console.log(err);
+                setError(err.message);
+                createNotification(err.message, 'Error');
             })
     }, []);
+
 
     return (
         <div>
             <div>
                 <div className="row">
                     {
-                        urls.map(url => <div className="col-md-4 mt-3"><img style={{
+                        props.plots.map(plot => <div className="col-md-4 mt-3"><img style={{
                             width: '250px',
                             height: '250px'
-                        }} src={url} alt=""/></div>)
+                        }} src={plot} alt=""/></div>)
+                    }
+                    {
+                        files.map(file => <div className="col-md-4 mt-3"><img style={{
+                            width: '250px',
+                            height: '250px'
+                        }} src={file.url} alt=""/></div>)
                     }
                 </div>
             </div>
@@ -47,7 +59,7 @@ const Storytelling = () => {
                     <CKeditor 
                     editor={ClassicEditor}
                     onInit={ editor => {
-                        console.log('Editor is ready !', editor)
+                        console.log('Editor is ready !');
                     }}
 
                     onChange={ (event, editor ) => {
@@ -64,9 +76,15 @@ const Storytelling = () => {
                 }} dangerouslySetInnerHTML={{ __html: data }}>
                 </div>
             </div>
+            <NotificationContainer />
             </div>
     )
 };
 
-
-export default Storytelling;
+const mapStateToProps = state => {
+    return {
+        plots: state.statistics.plots
+    }
+}
+ 
+export default connect(mapStateToProps)(Storytelling);
