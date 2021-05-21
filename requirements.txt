@@ -66,7 +66,7 @@ sqlparse==0.3.0
 squarify==0.4.3
 tabula-py==1.4.1
 tensorboard==1.14.0
-tensorflow==1.14.0
+tensorflow==2.5.0
 tensorflow-estimator==1.14.0
 termcolor==1.1.0
 tzlocal==2.0.0
